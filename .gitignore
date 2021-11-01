@@ -1,0 +1,5 @@
+frontend/greenide/out
+frontend/greenide/dist
+frontend/greenide/node_modules
+frontend/greenide/.vscode-test/
+frontend/greenide/*.vsix
