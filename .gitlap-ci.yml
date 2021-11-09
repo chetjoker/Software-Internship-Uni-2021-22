@@ -1,0 +1,41 @@
+image: maven:latest
+
+stages:
+  - build
+  - test 
+  - run
+  - deploy
+
+variables:
+  MAVEN_CLI_OPTS: "-s .m2/settings.xml --batch-mode"
+  MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
+
+cache:
+  paths:
+    - .m2/repository/
+    - target/
+
+build:
+  tags:
+    - SWTP
+  stage: build
+  script:
+    - echo "building"
+    - "mvn install"
+
+test1:
+  stage: test
+  script:
+    - mvn $MAVEN_CLI_OPTS test
+
+run:
+  stage: run
+  script:
+    - echo "running"
+
+deploy:
+  stage: deploy
+  script:
+    - echo "deploying"  
+  only:
+    - main
