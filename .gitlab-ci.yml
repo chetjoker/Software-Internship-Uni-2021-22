@@ -23,7 +23,7 @@ build:
     - echo "building"
     - "mvn install"
 
-test1:
+test:
   stage: test
   script:
     - mvn $MAVEN_CLI_OPTS test
