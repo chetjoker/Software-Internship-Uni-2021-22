@@ -21,6 +21,8 @@ build:
   script:
     - echo "building"
     - "mvn install"
+    - cd /src
+    - ls
     - java HelloWorld.java
 
 test:
