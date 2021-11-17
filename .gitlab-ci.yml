@@ -3,7 +3,6 @@ image: maven:latest
 stages:
   - build
   - test 
-  - run
   - deploy
 
 variables:
@@ -22,16 +21,15 @@ build:
   script:
     - echo "building"
     - "mvn install"
+    - cd /src/main/java/hello/
+    - java HelloWorld.java
 
 test:
   stage: test
   script:
-    - mvn $MAVEN_CLI_OPTS test
-
-run:
-  stage: run
-  script:
-    - echo "running"
+    - cd /src/test/java/hello/
+    - java GreeterTest.java
+ 
 
 deploy:
   stage: deploy
