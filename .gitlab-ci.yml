@@ -1,4 +1,4 @@
-image: maven:latest
+image: maven:release
 
 stages:
   - build
@@ -21,13 +21,11 @@ build:
   script:
     - echo "building"
     - "mvn install"
-    - cd /src/main/java/hello/
     - java HelloWorld.java
 
 test:
   stage: test
   script:
-    - cd /src/test/java/hello/
     - java GreeterTest.java
  
 
