@@ -1,4 +1,4 @@
-image: maven:release
+image: maven:latest
 
 stages:
   - build
