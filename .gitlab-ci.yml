@@ -22,7 +22,7 @@ build:
     - echo "building"
     - "mvn install"
     - cd src/main/java
-    - javac hello/.*java
+    - javac hello/*.java
     - java hello.HelloWorld
 
 test:
