@@ -21,7 +21,7 @@ build:
   script:
     - echo "building"
     - "mvn install"
-    - cd src/main/java/hello
+    - cd src/main/java
     - javac hello/.*java
     - java hello.HelloWorld
 
