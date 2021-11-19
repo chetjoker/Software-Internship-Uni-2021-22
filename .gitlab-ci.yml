@@ -28,7 +28,6 @@ build:
 test:
   stage: test
   script:
-    - cd src/test/java
     - mvn clean test -Dtest=hello.GreeterTest
  
 
