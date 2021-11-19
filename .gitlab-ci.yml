@@ -29,8 +29,7 @@ test:
   stage: test
   script:
     - cd src/test/java
-    - javac GreeterTest.java
-    - java GreeterTest.java
+    - mvn clean test -Dtest=hello.GreeterTest
  
 
 deploy:
