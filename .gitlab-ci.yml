@@ -22,8 +22,8 @@ build:
     - echo "building"
     - "mvn install"
     - cd src/main/java/hello
-    - java Greeter.java
-    - java hello.HelloWorld
+    - javac Greeter.java
+    - java HelloWorld.java
 
 test:
   stage: test
