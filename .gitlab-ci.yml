@@ -38,5 +38,3 @@ deploy:
     - gem install dpl
   script:
     - dpl --provider=heruko --app=backend/greenide/java-getting-started --api-key=$HEROKU_API_TOKEN --skip-cleanup  
-  only:
-    - main
