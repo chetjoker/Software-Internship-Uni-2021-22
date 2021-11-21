@@ -3,7 +3,6 @@ image: maven:latest
 stages:
   - build
   - test 
-  - run
   - deploy
 
 variables:
@@ -22,20 +21,20 @@ build:
   script:
     - echo "building"
     - "mvn install"
+    - cd src/main/java
+    - javac hello/*.java
+    - java hello.HelloWorld
 
-test1:
+test:
   stage: test
   script:
-    - mvn $MAVEN_CLI_OPTS test
-
-run:
-  stage: run
-  script:
-    - echo "running"
+    - mvn clean test -Dtest=hello.GreeterTest
+ 
 
 deploy:
   stage: deploy
+  image: ruby:latest
+  before_script:
+    - gem install dpl
   script:
-    - echo "deploying"  
-  only:
-    - main
+    - dpl --provider=heruko --app=backend/greenide/java-getting-started --api-key=$HEROKU_API_TOKEN --skip-cleanup  
