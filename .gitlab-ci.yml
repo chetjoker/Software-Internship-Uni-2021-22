@@ -33,7 +33,10 @@ test:
 
 deploy:
   stage: deploy
+  image: ruby:latest
+  before_script:
+    - gem install dpl
   script:
-    - echo "deploying"  
+    - dpl --provider=heruko --app=backend/greenide/java-getting-started --api-key=$HEROKU_API_TOKEN --skip-cleanup  
   only:
     - main
