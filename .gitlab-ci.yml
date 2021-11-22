@@ -37,4 +37,4 @@ deploy:
   before_script:
     - gem install dpl
   script:
-    - dpl --provider=heruko --app=bsrc/main/java/hello --api-key=$HEROKU_API_TOKEN --skip-cleanup  
+    - dpl --provider=heruko --app=src/main/java/hello --api-key=$HEROKU_API_TOKEN --skip-cleanup  
