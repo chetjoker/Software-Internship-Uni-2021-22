@@ -37,4 +37,4 @@ deploy:
   before_script:
     - gem install dpl
   script:
-    - dpl --provider=heroku --app=src/main/java/hello --api-key=$HEROKU_API_TOKEN --skip-cleanup  
+    - dpl --provider=heroku --app=backend/greenide/java-getting-started --api-key=$HEROKU_API_TOKEN --skip-cleanup  
