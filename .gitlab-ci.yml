@@ -13,6 +13,7 @@ cache:
   paths:
     - .m2/repository/
     - target/
+    - frontend/greenide/node_modules/
 
 build:
   tags:
@@ -29,7 +30,19 @@ test:
   stage: test
   script:
     - mvn clean test -Dtest=hello.GreeterTest
- 
+
+test_frontend:
+  stage: test
+  image: node:12-slim
+  variables:
+    DISPLAY: ':99.0'
+  script:
+    - cd frontend/greenide
+    - apt-get update
+    - apt-get install -y xvfb libxtst6 libnss3 libgtk-3-0 libxss1 libasound2 libsecret-1-0 git
+    - npm ci
+    - /usr/bin/Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+    - npm run test
 
 deploy:
   stage: deploy
@@ -37,4 +50,4 @@ deploy:
   before_script:
     - gem install dpl
   script:
-    - dpl --provider=heroku --app=backend/greenide/java-getting-started --api-key=$HEROKU_API_TOKEN --skip-cleanup  
+    - dpl --provider=heroku --app=backendswtp --api-key=$HEROKU_API_TOKEN --skip-cleanup  
