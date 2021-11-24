@@ -1,1 +1,1 @@
-web: java -jar target/demo-1.0.jar
+web: java -jar target/demo-2.1.6.RELEASE.jar
