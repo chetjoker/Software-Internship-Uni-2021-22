@@ -53,6 +53,6 @@ deploy:
     - dpl --provider=heroku --app=backendswtp --api-key=$HEROKU_API_TOKEN --skip-cleanup 
   only:
     refs:
-      -branches
+      - branches
     changes:
       - backend/*
