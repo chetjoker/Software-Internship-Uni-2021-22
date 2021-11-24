@@ -13,7 +13,7 @@ public class DemoApplication {
 	@RequestMapping("/")
 	String home() {
 		besucher++;
-		return "Hello World\n Besucher Nummer:" + besucher;
+		return "Hello World\n Besucher Nummer :" + besucher;
 	}
 	
 	public static void main(String[] args) {
