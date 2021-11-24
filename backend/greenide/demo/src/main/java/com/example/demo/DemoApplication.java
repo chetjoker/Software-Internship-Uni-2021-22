@@ -8,12 +8,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @SpringBootApplication
 public class DemoApplication {
-	public static int contador = 0;
+	public static int besucher = 0;
 
 	@RequestMapping("/")
 	String home() {
-		contador++;
-		return "Hello World\n\nSeja Bem Vindo!\n\nVocê é o visitante número: " + contador;
+		besucher++;
+		return "Hello World\n Besucher Nummer:" + besucher;
 	}
 	
 	public static void main(String[] args) {
