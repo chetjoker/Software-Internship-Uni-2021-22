@@ -53,4 +53,4 @@ deploy:
     - dpl --provider=heroku --app=backendswtp --api-key=$HEROKU_API_TOKEN --skip-cleanup 
   only:
     changes:
-      -backend/greenide/* 
+      - backend/greenide/* 
