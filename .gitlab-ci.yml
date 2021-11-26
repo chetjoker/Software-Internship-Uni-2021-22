@@ -49,6 +49,7 @@ deploy:
   image: ruby:latest
   before_script:
     - gem install dpl
+    - mvn install
   script:
     - cd backend/greenide/demo
     - mvn clean package
