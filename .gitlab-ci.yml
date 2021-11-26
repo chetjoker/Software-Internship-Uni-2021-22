@@ -47,6 +47,7 @@ test_frontend:
 deploy:
   stage: deploy
   image: ruby:latest
+         maven:latest
   before_script:
     - gem install dpl
   script:
