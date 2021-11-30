@@ -51,7 +51,3 @@ deploy:
     - gem install dpl
   script:
     - dpl --provider=heroku --app=backendswtp13 --api-key=$HEROKU_API_TOKEN --skip-cleanup 
-    - apt install maven
-    - cd backend/greenide/demo
-    - mvn clean package
-
