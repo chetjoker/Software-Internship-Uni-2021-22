@@ -54,5 +54,6 @@ deploy:
     - dpl --provider=heroku --app=backendswtp13 --api-key=$HEROKU_API_TOKEN --skip-cleanup 
     - apt-get update
     - apt-get install maven -y
+    - cd backend/greenide/demo
     - mvn clean package
 
