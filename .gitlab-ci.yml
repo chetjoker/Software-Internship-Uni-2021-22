@@ -14,6 +14,7 @@ cache:
     - .m2/repository/
     - target/
     - frontend/greenide/node_modules/
+    - backend/greenide/demo/
 
 build:
   tags:
@@ -53,6 +54,5 @@ deploy:
     - dpl --provider=heroku --app=backendswtp13 --api-key=$HEROKU_API_TOKEN --skip-cleanup 
     - apt-get update
     - apt-get install maven -y
-    - cd backend/greenide/demo
     - mvn clean package
 
