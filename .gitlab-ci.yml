@@ -52,9 +52,8 @@ deploy:
     - gem install dpl
     - apt-get update
     - apt-get install maven -y
-    - echo "cd to backend and mvn package"
     - cd backend/greenide/demo
-    - mvn clean package
+    - mvn clean package -Dmaven.test.skip
   script:
     - dpl --provider=heroku --app=backendswtp13 --api-key=$HEROKU_API_TOKEN --skip-cleanup 
 
