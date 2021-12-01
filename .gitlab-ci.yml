@@ -50,10 +50,11 @@ deploy:
   image: ruby:latest
   before_script:
     - gem install dpl
-  script:
-    - dpl --provider=heroku --app=backendswtp13 --api-key=$HEROKU_API_TOKEN --skip-cleanup 
     - apt-get update
     - apt-get install maven -y
+  script:
     - cd backend/greenide/demo
     - mvn clean package
+    - dpl --provider=heroku --app=backendswtp13 --api-key=$HEROKU_API_TOKEN --skip-cleanup 
+
 
