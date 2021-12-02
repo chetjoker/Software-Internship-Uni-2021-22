@@ -56,5 +56,3 @@ deploy:
     - mvn clean package -Dmaven.test.skip
   script:
     - dpl --provider=heroku --app=backendswtp13 --api-key=$HEROKU_API_TOKEN --skip-cleanup 
-
-
