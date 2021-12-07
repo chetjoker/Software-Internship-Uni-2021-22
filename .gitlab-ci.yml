@@ -1,8 +1,8 @@
 image: maven:latest
 
 stages:
-  - build
-  - test 
+  - build 
+  - test
   - deploy
 
 variables:
@@ -15,6 +15,17 @@ cache:
     - target/
     - frontend/greenide/node_modules/
     - backend/greenide/demo/
+
+build:
+  tags:
+    - SWTP
+  stage: build
+  script:
+    - echo "building"
+    - "mvn install"
+    - cd src/main/java
+    - javac hello/*.java
+    - java hello.HelloWorld
 
 test:
   stage: test
@@ -33,17 +44,6 @@ test_frontend:
     - npm ci
     - /usr/bin/Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
     - npm run test
-
-build:
-  tags:
-    - SWTP
-  stage: build
-  script:
-    - echo "building"
-    - "mvn install"
-    - cd src/main/java
-    - javac hello/*.java
-    - java hello.HelloWorld
 
 package_extension:
   stage: build
