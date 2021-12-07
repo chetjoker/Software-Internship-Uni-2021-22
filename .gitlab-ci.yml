@@ -46,7 +46,7 @@ test_frontend:
     - npm run test
 
 package_extension:
-  stage: build
+  stage: deploy
   image: node:latest
   script:
     - cd frontend/greenide
