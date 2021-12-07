@@ -6,18 +6,39 @@ import * as vscode from 'vscode';
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
 	
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
 	console.log('Congratulations, your extension "greenide" is now active!');
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('greenide.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from GreenIDE!');
-	});
+	const definedFunctionNames = ["getMaxEncodedLength", "funktionsName2"];
+
+	let disposable = vscode.languages.registerHoverProvider({scheme: 'file'},{
+        provideHover(document, position, token) {
+
+            const range = document.getWordRangeAtPosition(position);
+            const word = document.getText(range);
+
+			//Boolean if current word is in function list
+			let hoverTriggered = false;
+			
+			//Values to display on hovering
+			let hoverLanguage = "";
+			let hoverText = "";
+
+			//Check if any of provided function names gets triggered
+			definedFunctionNames.forEach((definedFunctionName) => {
+				if (word == definedFunctionName) {
+					hoverText = "Hovering over " + definedFunctionName;
+					hoverTriggered = true;
+				}
+			});
+
+			if(hoverTriggered){
+				return new vscode.Hover({
+					language: hoverLanguage,
+					value: hoverText
+				});
+			}
+        }
+    });
 
 	context.subscriptions.push(disposable);
 }
