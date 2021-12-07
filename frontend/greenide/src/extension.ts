@@ -2,24 +2,39 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 
+// is required to read and wirte files with Node.js
+import * as fs from 'fs';
+
+// Save current path of the project, it is important to be in the direct folder
+let folderPath = vscode.workspace.workspaceFolders?.map(folder => folder.uri.fsPath);
+
+const configName = "/greenideconfig.txt";
+const standardConfig = "1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1";
+
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-	
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "greenide" is now active!');
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('greenide.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from GreenIDE!');
+	console.log('folderPath: ' + folderPath);
+	fs.readFile(folderPath + configName, 'utf8', (err, data) => {
+		// check if configuration file exist
+		if(err) {
+			console.error(err.message );
+			console.log('Es wird eine neue Standradkonfiguration angelegt!');
+
+			// if configuration file does not exist, a new one will be created
+			fs.writeFile(folderPath + configName, standardConfig, err => {
+				if(err) {
+					console.error(err.message);
+				}
+				console.log('Datei wurde erfolgreich hinzugefügt!');
+			});
+		}
+
+		// if configuration file exist, it will be displayed in the console
+		console.log(data);
 	});
 
-	context.subscriptions.push(disposable);
 }
 
 // this method is called when your extension is deactivated
