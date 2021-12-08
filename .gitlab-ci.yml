@@ -14,7 +14,6 @@ cache:
     - .m2/repository/
     - target/
     - frontend/greenide/node_modules/
-    - backend/greenide/demo/
 
 build:
   tags:
@@ -62,9 +61,5 @@ deploy:
   image: ruby:latest
   before_script:
     - gem install dpl
-    - apt-get update
-    - apt-get install maven -y
-    - cd backend/greenide/demo
-    - mvn clean package -Dmaven.test.skip
   script:
-    - dpl --provider=heroku --app=backendswtp13 --api-key=$HEROKU_API_TOKEN --skip-cleanup 
+    - dpl --provider=heroku --app=serverbackendgreenide --api-key=$HEROKU_API_TOKEN --skip-cleanup 
