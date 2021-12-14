@@ -60,11 +60,8 @@ deploy:
   stage: deploy
   image: ruby:latest
   before_script:
-    - gem install dpl
-  script:
-    - dpl --provider=heroku --app=server-backend-swtp-13 --api-key=$HEROKU_API_TOKEN --skip-cleanup 
-  rules:
-    - if: '$CI_COMMIT_REF_NAME== "feature/backend-server"'
-      changes:
-      - backend/server/*
-      when: always
+    - gem install dpl 
+  steps:
+      - uses: dpl --provider=heroku --app=server-backend-swtp-13 --api-key=$HEROKU_API_TOKEN --skip-cleanup
+        with:
+          appdir: "backend/server/"
