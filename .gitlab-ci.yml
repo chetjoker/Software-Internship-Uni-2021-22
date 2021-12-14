@@ -61,7 +61,9 @@ deploy:
   image: ruby:latest
   before_script:
     - gem install dpl 
-  steps:
-      - uses: dpl --provider=heroku --app=server-backend-swtp-13 --api-key=$HEROKU_API_TOKEN --skip-cleanup
-        with:
-          appdir: "backend/server/"
+    - cd backend/server
+  script: dpl --provider=heroku --app=server-backend-swtp-13 --api-key=$HEROKU_API_KEY --skip_cleanup
+  rules:
+      changes:
+      - backend/server/*
+      when: always
