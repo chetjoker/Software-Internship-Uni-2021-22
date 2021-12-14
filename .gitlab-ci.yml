@@ -64,6 +64,6 @@ deploy:
     - cd backend/server
   script: dpl --provider=heroku --app=server-backend-swtp-13 --api-key=$HEROKU_API_KEY --skip_cleanup
   rules:
-      changes:
-         - backend/server/*
-      when: always
+    changes:
+      - backend/server/*
+    when: always
