@@ -55,11 +55,3 @@ package_extension:
   artifacts:
     paths:
       - frontend/greenide/greenide.vsix
-
-deploy:
-  stage: deploy
-  image: ruby:latest
-  before_script:
-    - gem install dpl
-  script:
-    - dpl --provider=heroku --app=serverbackendgreenide --api-key=$HEROKU_API_TOKEN --skip-cleanup 
