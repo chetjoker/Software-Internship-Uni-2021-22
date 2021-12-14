@@ -4,5 +4,10 @@
   "description": "",
   "main": "server.js",
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "socket.io": "^4.4.0",
+    "socketio": "^1.0.0"
+  }
 }
