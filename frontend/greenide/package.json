@@ -48,6 +48,7 @@
 		"@vscode/test-electron": "^1.6.2"
 	},
 	"dependencies": {
+		"axios": "^0.24.0",
 		"vsce": "^2.5.1"
 	}
 }
