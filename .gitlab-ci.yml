@@ -62,4 +62,4 @@ deploy:
   before_script:
     - gem install dpl 
     - cd backend/server
-  script: dpl --provider=heroku --app=server-backend-swtp-13 --api-key=$HEROKU_API_KEY --skip_cleanup
+  script: dpl --provider=heroku --app=server-backend-swtp-13 --api-key=$HEROKU_API_TOKEN --skip_cleanup
