@@ -180,7 +180,7 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 										if((!isSubClass || isInSubclass) && subClassIndex >= highestSubClassIndex){
 											highestSubClassIndex = subClassIndex;
 											hoverTriggered = true;
-											hoverText = "Function: " + definedFunction.name + "\nRuntime: " + definedFunction.runtime + "\nEnergy: " + definedFunction.energy;	
+											hoverText = "Function: " + definedFunction.name + "\nRuntime: " + definedFunction.runtime + " ms\nEnergy: " + definedFunction.energy + " mWs";	
 										}
 									}
 								}
