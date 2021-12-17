@@ -12,7 +12,7 @@ const path = require('path');
 let folderPath = vscode.workspace.workspaceFolders?.map(folder => folder.uri.fsPath);
 
 const configName = "greenide.config";
-const standardConfig = {"root": 1, "BLOCKSIZE": 0, "JOBS": 0, "LEVEL": 0, "CHECKSUM": 0, "SKIP": 0, "NoTransform": 0, "Huffman": 0, "ANS0": 0, "ANS1": 0, "Range": 0, "FPAQ": 0, "TPAQ": 0, "CM": 0};
+const standardConfig = {"root": 1, "BLOCKSIZE": 0, "JOBS": 0, "LEVEL": 0, "CHECKSUM": 0, "SKIP": 0, "NoTransform": 0, "Huffman": 0, "ANS0": 0, "ANS1": 0, "Range": 0, "FPAQ": 0, "TPAQ": 0, "CM": 0,"NoEntropy": 0,"BWTS": 0,"ROLZ": 0,"RLT": 0,"ZRLT": 0,"MTFT": 0,"RANK": 0,"TEXT": 0,"X86": 0};
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
