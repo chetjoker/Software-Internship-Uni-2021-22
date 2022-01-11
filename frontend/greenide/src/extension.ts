@@ -6,6 +6,7 @@ import axios from 'axios';
 // is required to read and wirte files with Node.js
 import * as fs from 'fs';
 
+
 const path = require('path');
 
 // Save current path of the project, it is important to be in the direct folder
@@ -20,33 +21,54 @@ export function activate(context: vscode.ExtensionContext) {
 
 	console.log('Congratulations, your extension "greenide" is now active!');
 
-	if(folderPath){
-		try {
-			if (!fs.existsSync(path.join(folderPath[0], configName))) {
-				fs.writeFileSync(path.join(folderPath[0], configName), JSON.stringify(standardConfig));
-			}
-		} catch(err) {
-			console.error(err);
-		}
+	let disposable = vscode.commands.registerCommand('greenide.init', (greenidePackage: string = 'kanzi') => {
+		initializeGreenide(context, greenidePackage);
+	})
 
-		let configArray = readConfig();
-
-		registerNewMethodHover(context, configArray);
-	}
-
-	vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
-		if(folderPath){
-			if (document.fileName === path.join(folderPath[0], configName)) {
-				let configArray = readConfig();
-
-				registerNewMethodHover(context, configArray);
-			}
-		}
-	});
+	context.subscriptions.push(disposable);
 }
 
 // this method is called when your extension is deactivated
 export function deactivate() {}
+
+function initializeGreenide(context: vscode.ExtensionContext, greenidePackage : string){
+
+	//Request Parameterlist from Server
+	axios.post("http://server-backend-swtp-13.herokuapp.com/getParameters", {greenidePackage: greenidePackage}, {}).then(res => {
+		if(folderPath){
+			let standardConfigKeys : string[] = res.data;
+			standardConfigKeys = ["Hallo", "Text", "Drittes"];
+
+			let standardConfig : {[key: string]: number} = {};
+
+			for (let i = 0; i < standardConfigKeys.length; i ++){
+				standardConfig[standardConfigKeys[i]] = 0;
+			}
+
+			try {
+				if (!fs.existsSync(path.join(folderPath[0], configName))) {
+					fs.writeFileSync(path.join(folderPath[0], configName), JSON.stringify(standardConfig));
+				}
+			} catch(err) {
+				console.error(err);
+			}
+
+			let configArray = readConfig();
+
+			registerNewMethodHover(context, configArray, greenidePackage);
+		}
+
+		vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
+			if(folderPath){
+				if (document.fileName === path.join(folderPath[0], configName)) {
+					let configArray = readConfig();
+	
+					registerNewMethodHover(context, configArray, greenidePackage);
+				}
+			}
+		});
+	});
+}
 
 function readConfig(){
 	let configArray = [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
@@ -64,8 +86,8 @@ function readConfig(){
 }
 
 
-function registerNewMethodHover(context: vscode.ExtensionContext, configArray: any[]){
-	axios.post("http://server-backend-swtp-13.herokuapp.com/getMethodParameters", {config: configArray}, {}).then(res => {
+function registerNewMethodHover(context: vscode.ExtensionContext, configArray: any[], greenidePackage : string){
+	axios.post("http://server-backend-swtp-13.herokuapp.com/getMethodParameters", {config: configArray, greenidePackage: greenidePackage}, {}).then(res => {
 		let definedFunctions: any = res.data;
 
 		context.subscriptions.forEach((disposable: vscode.Disposable) => {

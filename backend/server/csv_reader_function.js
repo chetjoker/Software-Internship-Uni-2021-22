@@ -1,5 +1,29 @@
 const fs = require('fs')
 
+function readConfigParameters(filePath){
+  return new Promise(resolve => {
+    fs.readFile(filePath, 'utf8' , (err, data) => {
+      if (err) {
+        console.error(err);
+        return;
+      }
+
+      let zeilen = data.split('\n');
+      let ersteZeile = zeilen[0];
+      ersteZeile = ersteZeile.replace(/"/g, '');
+      let parameters = ersteZeile.split(',');
+      
+      //Entferne Einträge für Energiewerte
+      parameters.pop()
+      parameters.pop()
+
+      resolve(parameters);
+    });
+  });
+}
+exports.readConfigParameters = readConfigParameters;//exports function
+
+
 function readAndCalcParameters(eingabeConfig, filePath){
     return new Promise(resolve => {
         fs.readFile(filePath, 'utf8' , (err, data) => {
