@@ -13,7 +13,8 @@ function readConfigParameters(filePath){
       ersteZeile = ersteZeile.replace(/"/g, '');
       let parameters = ersteZeile.split(',');
       
-      //Entferne Einträge für Energiewerte
+      //Entferne unnötige Einträge
+      parameters.shift()
       parameters.pop()
       parameters.pop()
 
