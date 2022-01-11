@@ -19,7 +19,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	console.log('Congratulations, your extension "greenide" is now active!');
 
-	let disposable = vscode.commands.registerCommand('greenide.init', (greenidePackage: string = 'density-converter') => {
+	let disposable = vscode.commands.registerCommand('greenide.init', (greenidePackage: string = 'kanzi') => {
 		initializeGreenide(context, greenidePackage);
 	})
 
