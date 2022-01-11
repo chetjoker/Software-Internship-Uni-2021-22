@@ -13,7 +13,9 @@ app.use(express.urlencoded({
 
 app.post('/getMethodParameters', async (req, res) => {
   if(req.body.config && req.body.greenidePackage){
+
     let methods = await import_csv_reader.readAndCalcParameters(req.body.config, "./" + req.body.greenidePackage + ".csv");
+
     res.send(methods);
   }else{
     res.send("config not found");  

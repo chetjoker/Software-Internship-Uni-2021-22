@@ -19,7 +19,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	console.log('Congratulations, your extension "greenide" is now active!');
 
-	let disposable = vscode.commands.registerCommand('greenide.init', (greenidePackage: string = 'kanzi') => {
+	let disposable = vscode.commands.registerCommand('greenide.init', (greenidePackage: string = 'density-converter') => {
 		initializeGreenide(context, greenidePackage);
 	})
 
@@ -33,13 +33,18 @@ function initializeGreenide(context: vscode.ExtensionContext, greenidePackage : 
 
 	//Request Parameterlist from Server
 	axios.post("http://server-backend-swtp-13.herokuapp.com/getParameters", {greenidePackage: greenidePackage}, {}).then(res => {
+		
 		if(folderPath){
 			let standardConfigKeys : string[] = res.data;
 
 			let standardConfig : {[key: string]: number} = {};
 
 			for (let i = 0; i < standardConfigKeys.length; i ++){
-				standardConfig[standardConfigKeys[i]] = 0;
+				if(i === 0){
+					standardConfig[standardConfigKeys[i]] = 1;
+				}else{
+					standardConfig[standardConfigKeys[i]] = 0;
+				}
 			}
 
 			try {
@@ -84,17 +89,21 @@ function readConfig(){
 
 
 function registerNewMethodHover(context: vscode.ExtensionContext, configArray: any[], greenidePackage : string){
+	
+	//Abfrage zum Server
 	axios.post("http://server-backend-swtp-13.herokuapp.com/getMethodParameters", {config: configArray, greenidePackage: greenidePackage}, {}).then(res => {
 		let definedFunctions: any = res.data;
 
+		//Example Hotspot Array
+		let hotspotArray = ["kanzi.Global.computeHistogramOrder0", "kanzi.Global.initSquash", "kanzi.entropy.ANSRangeEncoder.encodeChunk"]
+
 		context.subscriptions.forEach((disposable: vscode.Disposable) => {
 			disposable.dispose();
-
 		});
 
 		let disposable = vscode.languages.registerHoverProvider({language: 'java', scheme: 'file'},{
 			provideHover(document, position, token) {
-				//Standartwerte bei Hover
+				//Standardwerte bei Hover
 				let hoverTriggered = false;
 				let hoverLanguage = "";
 				let hoverText = "";

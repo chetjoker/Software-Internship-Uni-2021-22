@@ -14,7 +14,7 @@
 		"Other"
 	],
 	"activationEvents": [
-		"*"
+		"onCommand:greenide.init"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
