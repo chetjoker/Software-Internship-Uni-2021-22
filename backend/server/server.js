@@ -12,12 +12,22 @@ app.use(express.urlencoded({
 }));
 
 app.post('/getMethodParameters', async (req, res) => {
-  console.log(req.body);//gibt empfangene config in console aus
-  if(req.body.config){
-    let methods = await import_csv_reader.readAndCalcParameters(req.body.config, "./model_Kanzi_Method_Level.csv");
+  if(req.body.config && req.body.greenidePackage){
+
+    let methods = await import_csv_reader.readAndCalcParameters(req.body.config, "./" + req.body.greenidePackage + ".csv");
+
     res.send(methods);
   }else{
     res.send("config not found");  
+  }
+})
+
+app.post('/getParameters', async (req, res) => {
+  if(req.body.greenidePackage){
+    //Read config parameters from greenidePackage.csv
+    parameters = await import_csv_reader.readConfigParameters("./" + req.body.greenidePackage + ".csv");
+
+    res.send(parameters)
   }
 })
 

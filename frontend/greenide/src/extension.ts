@@ -12,7 +12,6 @@ const path = require('path');
 let folderPath = vscode.workspace.workspaceFolders?.map(folder => folder.uri.fsPath);
 
 const configName = "greenide.config";
-const standardConfig = {"root": 1, "BLOCKSIZE": 0, "JOBS": 0, "LEVEL": 0, "CHECKSUM": 0, "SKIP": 0, "NoTransform": 0, "Huffman": 0, "ANS0": 0, "ANS1": 0, "Range": 0, "FPAQ": 0, "TPAQ": 0, "CM": 0};
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -20,33 +19,58 @@ export function activate(context: vscode.ExtensionContext) {
 
 	console.log('Congratulations, your extension "greenide" is now active!');
 
-	if(folderPath){
-		try {
-			if (!fs.existsSync(path.join(folderPath[0], configName))) {
-				fs.writeFileSync(path.join(folderPath[0], configName), JSON.stringify(standardConfig));
-			}
-		} catch(err) {
-			console.error(err);
-		}
+	let disposable = vscode.commands.registerCommand('greenide.init', (greenidePackage: string = 'kanzi') => {
+		initializeGreenide(context, greenidePackage);
+	})
 
-		let configArray = readConfig();
-
-		registerNewMethodHover(context, configArray);
-	}
-
-	vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
-		if(folderPath){
-			if (document.fileName === path.join(folderPath[0], configName)) {
-				let configArray = readConfig();
-
-				registerNewMethodHover(context, configArray);
-			}
-		}
-	});
+	context.subscriptions.push(disposable);
 }
 
 // this method is called when your extension is deactivated
 export function deactivate() {}
+
+function initializeGreenide(context: vscode.ExtensionContext, greenidePackage : string){
+
+	//Request Parameterlist from Server
+	axios.post("http://server-backend-swtp-13.herokuapp.com/getParameters", {greenidePackage: greenidePackage}, {}).then(res => {
+		
+		if(folderPath){
+			let standardConfigKeys : string[] = res.data;
+
+			let standardConfig : {[key: string]: number} = {};
+
+			for (let i = 0; i < standardConfigKeys.length; i ++){
+				if(i === 0){
+					standardConfig[standardConfigKeys[i]] = 1;
+				}else{
+					standardConfig[standardConfigKeys[i]] = 0;
+				}
+			}
+
+			try {
+				if (!fs.existsSync(path.join(folderPath[0], configName))) {
+					fs.writeFileSync(path.join(folderPath[0], configName), JSON.stringify(standardConfig));
+				}
+			} catch(err) {
+				console.error(err);
+			}
+
+			let configArray = readConfig();
+
+			registerNewMethodHover(context, configArray, greenidePackage);
+		}
+
+		vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
+			if(folderPath){
+				if (document.fileName === path.join(folderPath[0], configName)) {
+					let configArray = readConfig();
+	
+					registerNewMethodHover(context, configArray, greenidePackage);
+				}
+			}
+		});
+	});
+}
 
 function readConfig(){
 	let configArray = [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
@@ -64,18 +88,22 @@ function readConfig(){
 }
 
 
-function registerNewMethodHover(context: vscode.ExtensionContext, configArray: any[]){
-	axios.post("http://server-backend-swtp-13.herokuapp.com/getMethodParameters", {config: configArray}, {}).then(res => {
+function registerNewMethodHover(context: vscode.ExtensionContext, configArray: any[], greenidePackage : string){
+	
+	//Abfrage zum Server
+	axios.post("http://server-backend-swtp-13.herokuapp.com/getMethodParameters", {config: configArray, greenidePackage: greenidePackage}, {}).then(res => {
 		let definedFunctions: any = res.data;
+
+		//Example Hotspot Array
+		let hotspotArray = ["kanzi.Global.computeHistogramOrder0", "kanzi.Global.initSquash", "kanzi.entropy.ANSRangeEncoder.encodeChunk"]
 
 		context.subscriptions.forEach((disposable: vscode.Disposable) => {
 			disposable.dispose();
-
 		});
 
 		let disposable = vscode.languages.registerHoverProvider({language: 'java', scheme: 'file'},{
 			provideHover(document, position, token) {
-				//Standartwerte bei Hover
+				//Standardwerte bei Hover
 				let hoverTriggered = false;
 				let hoverLanguage = "";
 				let hoverText = "";
@@ -180,7 +208,7 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 										if((!isSubClass || isInSubclass) && subClassIndex >= highestSubClassIndex){
 											highestSubClassIndex = subClassIndex;
 											hoverTriggered = true;
-											hoverText = "Function: " + definedFunction.name + "\nRuntime: " + definedFunction.runtime + "\nEnergy: " + definedFunction.energy;	
+											hoverText = "Function: " + definedFunction.name + "\nRuntime: " + definedFunction.runtime + " ms\nEnergy: " + definedFunction.energy + " mWs";	
 										}
 									}
 								}
