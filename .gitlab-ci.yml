@@ -15,22 +15,6 @@ cache:
     - target/
     - frontend/greenide/node_modules/
 
-build:
-  tags:
-    - SWTP
-  stage: build
-  script:
-    - echo "building"
-    - "mvn install"
-    - cd src/main/java
-    - javac hello/*.java
-    - java hello.HelloWorld
-
-test:
-  stage: test
-  script:
-    - mvn clean test -Dtest=hello.GreeterTest
-
 test_frontend:
   stage: test
   image: node:12-slim
