@@ -17,7 +17,7 @@ const configName = "greenide.config";
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
 
-	console.log('Congratulations, your extension "greenide" is now active!');
+	console.log('Congratulations, your extension "greenide" is now active!!');
 
 	let disposable = vscode.commands.registerCommand('greenide.init', (greenidePackage: string = 'kanzi') => {
 		initializeGreenide(context, greenidePackage);
