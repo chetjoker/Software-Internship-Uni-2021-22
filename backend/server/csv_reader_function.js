@@ -29,8 +29,8 @@ function readAndCalcParameters(eingabeConfig, filePath){
     return new Promise(resolve => {
         fs.readFile(filePath, 'utf8' , (err, data) => {
             if (err) {
-            console.error(err);
-            return;
+              console.error(err);
+              return;
             }
 
             let zeilen = data.split('\n');
@@ -53,9 +53,11 @@ function readAndCalcParameters(eingabeConfig, filePath){
                 let zeilenarray = zeilenTemp[2].split(',');
 
                 //Methodenname der aktuellen Zeile
-                
-                let zeilenConfig = zeilenarray.slice(1,24); //[1] bis [23] genommen = ganze konfig
-
+                if(eingabeConfig.length<23){
+                  let zeilenConfig = zeilenarray.slice(1,23); //[1] bis [22] genommen = ganze konfig | für densityconverter
+                } else {
+                  let zeilenConfig = zeilenarray.slice(1,24); //[1] bis [23] genommen = ganze konfig | für kanzi
+                }
 
                 if(currentMethodName !== zeilenMethodenname){
                     //Fertig berechnete Methode wird in Rückgabearray gepusht

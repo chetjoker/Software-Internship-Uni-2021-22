@@ -72,14 +72,15 @@ function initializeGreenide(context: vscode.ExtensionContext, greenidePackage : 
 	});
 }
 
-function readConfig(){
+function readConfig(){ 
 	let configArray = [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+
 	if(folderPath){
 		let fileContent = fs.readFileSync(path.join(folderPath[0], configName));
 
 		try{
 			let configObject = JSON.parse(fileContent.toString());
-			configArray = Object.values(configObject);
+			let configArray = Object.values(configObject);
 		}catch{
 			console.log("FEHLER in der greenide.config");
 		}
