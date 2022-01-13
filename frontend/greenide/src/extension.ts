@@ -13,6 +13,13 @@ let folderPath = vscode.workspace.workspaceFolders?.map(folder => folder.uri.fsP
 
 const configName = "greenide.config";
 
+// decortor type for hotspots
+const hotspotsDecoration = vscode.window.createTextEditorDecorationType({
+	overviewRulerColor: '#a82a2d',
+	overviewRulerLane: vscode.OverviewRulerLane.Full,
+	backgroundColor: '#a82a2d',
+});
+
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
@@ -21,7 +28,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	let disposable = vscode.commands.registerCommand('greenide.init', (greenidePackage: string = 'kanzi') => {
 		initializeGreenide(context, greenidePackage);
-	})
+	});
 
 	context.subscriptions.push(disposable);
 }
@@ -31,9 +38,11 @@ export function deactivate() {}
 
 function initializeGreenide(context: vscode.ExtensionContext, greenidePackage : string){
 
+	highlight();
+
 	//Request Parameterlist from Server
 	axios.post("http://server-backend-swtp-13.herokuapp.com/getParameters", {greenidePackage: greenidePackage}, {}).then(res => {
-		
+
 		if(folderPath){
 			let standardConfigKeys : string[] = res.data;
 
@@ -64,7 +73,7 @@ function initializeGreenide(context: vscode.ExtensionContext, greenidePackage : 
 			if(folderPath){
 				if (document.fileName === path.join(folderPath[0], configName)) {
 					let configArray = readConfig();
-	
+
 					registerNewMethodHover(context, configArray, greenidePackage);
 				}
 			}
@@ -89,13 +98,13 @@ function readConfig(){
 
 
 function registerNewMethodHover(context: vscode.ExtensionContext, configArray: any[], greenidePackage : string){
-	
+
 	//Abfrage zum Server
 	axios.post("http://server-backend-swtp-13.herokuapp.com/getMethodParameters", {config: configArray, greenidePackage: greenidePackage}, {}).then(res => {
 		let definedFunctions: any = res.data;
 
 		//Example Hotspot Array
-		let hotspotArray = ["kanzi.Global.computeHistogramOrder0", "kanzi.Global.initSquash", "kanzi.entropy.ANSRangeEncoder.encodeChunk"]
+		let hotspotArray = ["kanzi.Global.computeHistogramOrder0", "kanzi.Global.initSquash", "kanzi.entropy.ANSRangeEncoder.encodeChunk"];
 
 		context.subscriptions.forEach((disposable: vscode.Disposable) => {
 			disposable.dispose();
@@ -112,7 +121,7 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 				const wordRange = document.getWordRangeAtPosition(position, /\w[\w]*/g);
 				let suffixText = "";
 				let prefixText = "";
-				
+
 				if(wordRange){
 					prefixText = document.getText(new vscode.Range(new vscode.Position(0,0), wordRange.start));
 					suffixText = document.getText(new vscode.Range(wordRange.end, new vscode.Position(document.lineCount - 1, Math.max(document.lineAt(document.lineCount - 1).text.length - 1, 0))));
@@ -120,7 +129,7 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 				//Das Wort über welches gerade gehovered wird
 				const word = document.getText(wordRange);
 
-				//Speichere am Ende die Subclass, die am nächsten dran ist 
+				//Speichere am Ende die Subclass, die am nächsten dran ist
 				let highestSubClassIndex = -1;
 
 				//Gehe durch alle Methodennamen
@@ -141,10 +150,10 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 						let functionComponents = functionDef.split('.');
 						let functionName = functionComponents[functionComponents.length - 1];
 
-						
+
 						let documentPath = document.uri.toString().replace(".java","").split('/');
 
-						
+
 						let isSubClass = false;
 						let subClassName = "";
 						let isInSubclass = false;
@@ -160,7 +169,7 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 
 							if(subClassIndex > -1){
 								let subClassPrefixBody = prefixText.slice(subClassIndex);
-					
+
 								//Zähle die geschweiften Klammern und schaue ob sie ungerade sind => Man befindet sich in Subclass
 								if((subClassPrefixBody.match(/[\{\}]/g) || []).length % 2 !== 0){
 									isInSubclass = true;
@@ -181,7 +190,7 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 						}
 
 
-						
+
 						//Checke ob mit Leerzeichen beginnt und Klammern folgen
 						if(suffixText.match(/^\(.*\)/) && prefixText.match(/\s$/)){
 
@@ -201,14 +210,14 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 									//Anzahl der Parameter der Hoverfunktion erhalten
 									let suffixParts = suffixText.split(')');
 									let suffixParameterCount = (suffixParts[0].match(/,/g) || []).length;
-									
+
 									//Teste ob Parameteranzahl mitgegeben ist und wenn ja, ob sie passt
 									if(!isFunctionParameterCountSet || suffixParameterCount === functionParameterCount){
 										//Sonderbehandlung für Subclasses
 										if((!isSubClass || isInSubclass) && subClassIndex >= highestSubClassIndex){
 											highestSubClassIndex = subClassIndex;
 											hoverTriggered = true;
-											hoverText = "Function: " + definedFunction.name + "\nRuntime: " + definedFunction.runtime + " ms\nEnergy: " + definedFunction.energy + " mWs";	
+											hoverText = "Function: " + definedFunction.name + "\nRuntime: " + definedFunction.runtime + " ms\nEnergy: " + definedFunction.energy + " mWs";
 										}
 									}
 								}
@@ -224,10 +233,40 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 				}
 			}
 		});
-	
-	
+
+
 		context.subscriptions.push(disposable);
 	}).catch((error) => {
 		console.log(error.response);
 	});
+}
+
+function highlight()
+{
+	const activeEditor = vscode.window.activeTextEditor;
+	if(!activeEditor)
+		{return;}
+
+	const funktionsnamen = ["BlockCompressor", "call", "Global"];
+
+	const regex = /\w+/g;
+	const text = activeEditor.document.getText();
+	const hotspots: vscode.DecorationOptions[] = [];
+
+	let match: any;
+	while ((match = regex.exec(text))) {
+
+
+		const startPos = activeEditor.document.positionAt(match.index);
+		const endPos = activeEditor.document.positionAt(match.index + match[0].length);
+		const decoration = { range: new vscode.Range(startPos, endPos) };
+
+		funktionsnamen.forEach(function (value){
+			if(match[0] === value) {
+				hotspots.push(decoration);
+			}
+		});
+		//console.log(match);
+	}
+	activeEditor.setDecorations(hotspotsDecoration, hotspots);
 }
