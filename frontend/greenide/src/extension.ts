@@ -32,8 +32,9 @@ export function deactivate() {}
 function initializeGreenide(context: vscode.ExtensionContext, greenidePackage : string){
 
 	//Request Parameterlist from Server
+	console.log("test1");
 	axios.post("http://server-backend-swtp-13.herokuapp.com/getParameters", {greenidePackage: greenidePackage}, {}).then(res => {
-		console.log("test");
+		console.log("test2");
 		if(folderPath){
 			let standardConfigKeys : string[] = res.data;
 
