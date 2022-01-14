@@ -51,11 +51,8 @@ function readAndCalcParameters(eingabeConfig, filePath){
                   let zeilenTemp = zeile.split('"');
                   let zeilenMethodenname = zeilenTemp[1];
                   let zeilenarray = zeilenTemp[2].split(',');
-                  zeilenarray.shift()
-                  zeilenarray.pop()
-                  zeilenarray.pop()
 
-                  let zeilenConfig = zeilenarray;
+                  let zeilenConfig = zeilenarray.slice(1,zeilenarray.length-2);
 
                   //Methodenname der aktuellen Zeile
                   if(currentMethodName !== zeilenMethodenname){
