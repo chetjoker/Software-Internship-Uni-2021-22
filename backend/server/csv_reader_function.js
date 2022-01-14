@@ -123,7 +123,7 @@ function greenspotDetector(methods, oldConfigMethods){//.runtime, .energy
           }
       }
   }
-  return hotspotArray;
+  return greenspotArray;
 }
 exports.greenspotDetector = greenspotDetector;//exports function
 
