@@ -100,7 +100,7 @@ function configMatches(eingabeConfig, zeilenConfig){ //eingabeKonfig vom Fronten
 function hotspotDetector(methods, oldConfigMethods){//.runtime, .energy
   let hotspotArray = [];
   for(i=0;i<methods.length;i++){
-      if(methods[i].name===oldConfigMethods[i]){//falls es sich nicht gleicht, fehler im array
+      if(methods[i].name===oldConfigMethods[i].name){//falls es sich nicht gleicht, fehler im array
           let runtimeHotspot = compareMethodparameters(methods[i].runtime, oldConfigMethods[i].runtime);
           let energyHotspot = compareMethodparameters(methods[i].energy, oldConfigMethods[i].energy);
           if(runtimeHotspot || energyHotspot){
@@ -115,7 +115,7 @@ exports.hotspotDetector = hotspotDetector;//exports function
 function greenspotDetector(methods, oldConfigMethods){//.runtime, .energy
   let greenspotArray = [];
   for(i=0;i<methods.length;i++){
-      if(methods[i].name===oldConfigMethods[i]){//falls es sich nicht gleicht, fehler im array
+      if(methods[i].name===oldConfigMethods[i].name){//falls es sich nicht gleicht, fehler im array
           let runtimeGreenspot = compareMethodparameters(methods[i].runtime, oldConfigMethods[i].runtime);
           let energyGreenspot = compareMethodparameters(methods[i].energy, oldConfigMethods[i].energy);
           if(runtimeGreenspot || energyGreenspot){ //runtime- oder energyhotspot

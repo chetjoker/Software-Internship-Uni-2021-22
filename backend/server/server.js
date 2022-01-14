@@ -21,7 +21,7 @@ app.post('/getMethodParameters', async (req, res) => {
     let methods = await import_csv_reader.readAndCalcParameters(req.body.config, "./" + req.body.greenidePackage + ".csv"); //neue config
 
     if(req.body.oldConfig.length>0 && arrayEquals(req.body.oldConfig, req.body.config)){
-      let oldConfigMethods = await import_csv_reader.readAndCalcParameters(oldConfig, "./" + req.body.greenidePackage + ".csv"); //alte config
+      let oldConfigMethods = await import_csv_reader.readAndCalcParameters(req.body.oldConfig, "./" + req.body.greenidePackage + ".csv"); //alte config
 
       hotspotArray = await import_csv_reader.hotspotDetector(methods, oldConfigMethods);  //Aufbau: Array={Element1,...}; Element1={name: string, runtimeHotspot: boolean, energyHotspot: boolean}
 
