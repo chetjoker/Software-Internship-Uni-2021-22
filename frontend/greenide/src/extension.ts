@@ -95,6 +95,7 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 	//Abfrage zum Server
 	axios.post("http://server-backend-swtp-13.herokuapp.com/getMethodParameters", {config: configArray, greenidePackage: greenidePackage, oldConfig: []}, {}).then(res => {
 		let definedFunctions: any = res.data.methods;
+		console.log(definedFunctions);
 		console.log(res.data.hotspots);
 
 		//Example Hotspot Array
