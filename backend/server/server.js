@@ -52,7 +52,7 @@ function arrayEquals(array1, array2){
     array1.forEach((element, index) => {
       if(element !== array2[index]){
         isEqual=false;
-        break;
+        //break;
       }
     });
   } else {
