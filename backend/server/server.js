@@ -60,3 +60,7 @@ function arrayEquals(array1, array2){
   }
   return isEqual;
 }
+
+app.post('/test', async (req, res) => {
+  res.send(req.body.test); 
+})
