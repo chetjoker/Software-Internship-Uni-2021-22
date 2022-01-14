@@ -47,34 +47,33 @@ function readAndCalcParameters(eingabeConfig, filePath){
 
             //Gehe Zeile für Zeile durch
             zeilen.forEach((zeile) => {
-            if(zeile !== ""){      
-                let zeilenTemp = zeile.split('"');
-                let zeilenMethodenname = zeilenTemp[1];
-                let zeilenarray = zeilenTemp[2].split(',');
+              if(zeile !== ""){      
+                  let zeilenTemp = zeile.split('"');
+                  let zeilenMethodenname = zeilenTemp[1];
+                  let zeilenarray = zeilenTemp[2].split(',');
+                  zeilenarray.shift()
+                  zeilenarray.pop()
+                  zeilenarray.pop()
 
-                //Methodenname der aktuellen Zeile
-                if(eingabeConfig.length<23){
-                  let zeilenConfig = zeilenarray.slice(1,23); //[1] bis [22] genommen = ganze konfig | für densityconverter
-                } else {
-                  let zeilenConfig = zeilenarray.slice(1,24); //[1] bis [23] genommen = ganze konfig | für kanzi
-                }
+                  let zeilenConfig = zeilenarray;
 
-                if(currentMethodName !== zeilenMethodenname){
-                    //Fertig berechnete Methode wird in Rückgabearray gepusht
-                      //console.log(currentMethodName,currentEnergy, currentRuntime);
-                    calculatedMethods.push({name: currentMethodName, runtime: currentRuntime, energy: currentEnergy});
-                    //Setze CurrentMethodenname auf neue sMethode und resette Runtime und Energy für Neuberechnung
-                    currentMethodName = zeilenMethodenname;
-                    currentRuntime = 0;
-                    currentEnergy = 0;
-                }
+                  //Methodenname der aktuellen Zeile
+                  if(currentMethodName !== zeilenMethodenname){
+                      //Fertig berechnete Methode wird in Rückgabearray gepusht
+                        //console.log(currentMethodName,currentEnergy, currentRuntime);
+                      calculatedMethods.push({name: currentMethodName, runtime: currentRuntime, energy: currentEnergy});
+                      //Setze CurrentMethodenname auf neue sMethode und resette Runtime und Energy für Neuberechnung
+                      currentMethodName = zeilenMethodenname;
+                      currentRuntime = 0;
+                      currentEnergy = 0;
+                  }
 
-                //Wenn die Zeilenconfig mit der Eingabeconfig passt, dann addiere Werte der Zeile
-                if(configMatches(eingabeConfig, zeilenConfig)){
-                    currentRuntime += parseFloat(zeilenarray[24]); //addiere Runtime der Zeile
-                    currentEnergy += parseFloat(zeilenarray[25]); //addiere Energy der Zeile
-                }
-            }
+                  //Wenn die Zeilenconfig mit der Eingabeconfig passt, dann addiere Werte der Zeile
+                  if(configMatches(eingabeConfig, zeilenConfig)){
+                      currentRuntime += parseFloat(zeilenarray[zeilenarray.length-2]); //addiere Runtime der Zeile
+                      currentEnergy += parseFloat(zeilenarray[zeilenarray.length-1]); //addiere Energy der Zeile
+                  }
+              }
             });
             resolve(calculatedMethods);
         });
@@ -98,4 +97,48 @@ function configMatches(eingabeConfig, zeilenConfig){ //eingabeKonfig vom Fronten
   return configsMatch;
 }
 
-//readAndCalcParameters([1,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0], "./model_kanzi_method_level.csv");
+function hotspotDetector(methods, oldConfigMethods){//.runtime, .energy
+  let hotspotArray = [];
+  for(i=0;i<methods.length;i++){
+      if(methods[i].name===oldConfigMethods[i]){//falls es sich nicht gleicht, fehler im array
+          let runtimeHotspot = compareMethodparameters(methods[i].runtime, oldConfigMethods[i].runtime);
+          let energyHotspot = compareMethodparameters(methods[i].energy, oldConfigMethods[i].energy);
+          if(runtimeHotspot || energyHotspot){
+              hotspotArray.push({name: methods[i].name, runtimeHotspot: runtimeHotspot, energyHotspot: energyHotspot}); //{name, runtime?, energy?}
+          }
+      }
+  }
+  return hotspotArray;
+}
+exports.hotspotDetector = hotspotDetector;//exports function
+
+function greenspotDetector(methods, oldConfigMethods){//.runtime, .energy
+  let greenspotArray = [];
+  for(i=0;i<methods.length;i++){
+      if(methods[i].name===oldConfigMethods[i]){//falls es sich nicht gleicht, fehler im array
+          let runtimeGreenspot = compareMethodparameters(methods[i].runtime, oldConfigMethods[i].runtime);
+          let energyGreenspot = compareMethodparameters(methods[i].energy, oldConfigMethods[i].energy);
+          if(runtimeGreenspot || energyGreenspot){ //runtime- oder energyhotspot
+            greenspotArray.push({name: methods[i].name, runtimeGreenspot: runtimeGreenspot, energyGreenspot: energyGreenspot}); //{name, runtimeHotspot?: true/false, energyHotspot?: true/false}
+          }
+      }
+  }
+  return hotspotArray;
+}
+exports.greenspotDetector = greenspotDetector;//exports function
+
+function compareMethodparameters(wertNeu, wertAlt){
+  if(wertNeu>0 && wertAlt>0){//wenn vorher negative oder danach, kann keine aussage getroffen werden
+    if(wertNeu>wertAlt){ //für Hotspots
+      if((parseFloat(wertNeu)/parseFloat(wertAlt))>=1,5){//50% steigerung oder mehr
+        return true;
+      }
+    }
+    if(wertNeu<wertAlt){ //für Greenspots
+      if((parseFloat(wertNeu)/parseFloat(wertAlt))<=0,5){//50% niedriger oder mehr
+        return true;
+      }
+    }
+  }
+  return false;
+}

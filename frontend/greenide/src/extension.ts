@@ -21,7 +21,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	let disposable = vscode.commands.registerCommand('greenide.init', (greenidePackage: string = 'kanzi') => {
 		initializeGreenide(context, greenidePackage);
-	})
+	});
 
 	context.subscriptions.push(disposable);
 }
@@ -80,7 +80,7 @@ function readConfig(){
 
 		try{
 			let configObject = JSON.parse(fileContent.toString());
-			let configArray = Object.values(configObject);
+			configArray = Object.values(configObject);
 		}catch{
 			console.log("FEHLER in der greenide.config");
 		}
@@ -92,11 +92,13 @@ function readConfig(){
 function registerNewMethodHover(context: vscode.ExtensionContext, configArray: any[], greenidePackage : string){
 	
 	//Abfrage zum Server
-	axios.post("http://server-backend-swtp-13.herokuapp.com/getMethodParameters", {config: configArray, greenidePackage: greenidePackage}, {}).then(res => {
-		let definedFunctions: any = res.data;
+	axios.post("http://server-backend-swtp-13.herokuapp.com/getMethodParameters", {config: configArray, greenidePackage: greenidePackage, oldConfig: []}, {}).then(res => {
+		let definedFunctions: any = res.data.methods;
+		console.log(res.data.hotspots);
 
 		//Example Hotspot Array
-		let hotspotArray = ["kanzi.Global.computeHistogramOrder0", "kanzi.Global.initSquash", "kanzi.entropy.ANSRangeEncoder.encodeChunk"]
+		let hotspotArray = [{methodname: "kanzi.Global.computeHistogramOrder0", runtimeHotspot: true, energyHotspot: false}, {methodname: "kanzi.Global.initSquash", runtimeHotspot: false, energyHotspot: true}];
+		//greenspotarray analog 
 
 		context.subscriptions.forEach((disposable: vscode.Disposable) => {
 			disposable.dispose();
