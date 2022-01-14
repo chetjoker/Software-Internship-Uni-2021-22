@@ -38,8 +38,6 @@ export function deactivate() {}
 
 function initializeGreenide(context: vscode.ExtensionContext, greenidePackage : string){
 
-	highlight();
-
 	//Request Parameterlist from Server
 	axios.post("http://server-backend-swtp-13.herokuapp.com/getParameters", {greenidePackage: greenidePackage}, {}).then(res => {
 
@@ -78,6 +76,7 @@ function initializeGreenide(context: vscode.ExtensionContext, greenidePackage : 
 				}
 			}
 		});
+
 	});
 }
 
@@ -101,14 +100,24 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 
 	//Abfrage zum Server
 	axios.post("http://server-backend-swtp-13.herokuapp.com/getMethodParameters", {config: configArray, greenidePackage: greenidePackage}, {}).then(res => {
+
 		let definedFunctions: any = res.data;
 
-		//Example Hotspot Array
-		let hotspotArray = ["kanzi.Global.computeHistogramOrder0", "kanzi.Global.initSquash", "kanzi.entropy.ANSRangeEncoder.encodeChunk"];
-
+		//Entferne vorherige HoverProvider
 		context.subscriptions.forEach((disposable: vscode.Disposable) => {
 			disposable.dispose();
 		});
+
+
+		//Example Hotspot Array
+		let hotspotArray = [{name: "kanzi.Global.computeHistogramOrder0"}, {name: "kanzi.Global.initSquash"}, {name: "kanzi.entropy.ANSRangeEncoder.encodeChunk"}];
+
+		highlightHotspots(hotspotArray);
+
+		vscode.window.onDidChangeVisibleTextEditors(event => {
+			console.log("onDidChangeVisibleTextEditors");
+			highlightHotspots(hotspotArray);
+		}, null, context.subscriptions);
 
 		let disposable = vscode.languages.registerHoverProvider({language: 'java', scheme: 'file'},{
 			provideHover(document, position, token) {
@@ -119,110 +128,10 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 
 
 				const wordRange = document.getWordRangeAtPosition(position, /\w[\w]*/g);
-				let suffixText = "";
-				let prefixText = "";
 
-				if(wordRange){
-					prefixText = document.getText(new vscode.Range(new vscode.Position(0,0), wordRange.start));
-					suffixText = document.getText(new vscode.Range(wordRange.end, new vscode.Position(document.lineCount - 1, Math.max(document.lineAt(document.lineCount - 1).text.length - 1, 0))));
-				}
-				//Das Wort über welches gerade gehovered wird
-				const word = document.getText(wordRange);
-
-				//Speichere am Ende die Subclass, die am nächsten dran ist
-				let highestSubClassIndex = -1;
-
-				//Gehe durch alle Methodennamen
-				definedFunctions.forEach((definedFunction: any) => {
-						let functionDef = definedFunction.name;
-						let isFunctionParameterCountSet = false;
-						let functionParameterCount = 0;
-
-						//Anzahl der Parameter erhalten und Klammern entfernen
-						if(definedFunction.name.indexOf('(') > -1){
-							isFunctionParameterCountSet = true;
-							let functionDefParts = definedFunction.name.split('(');
-							functionDef = functionDefParts[0];
-							functionParameterCount = (functionDefParts[1].match(/,/g) || []).length;
-						}
-
-						//In Pfad aufspalten und Namen erhalten
-						let functionComponents = functionDef.split('.');
-						let functionName = functionComponents[functionComponents.length - 1];
-
-
-						let documentPath = document.uri.toString().replace(".java","").split('/');
-
-
-						let isSubClass = false;
-						let subClassName = "";
-						let isInSubclass = false;
-						let subClassIndex = -1;
-						//Sonderfall Subclass
-						if(functionComponents[functionComponents.length - 2].indexOf('$') > -1){
-							let tempSubClassParts = functionComponents[functionComponents.length - 2].split('$');
-							isSubClass = true;
-							functionComponents[functionComponents.length - 2] = tempSubClassParts[0];
-							subClassName = tempSubClassParts[1];
-
-							subClassIndex = prefixText.search(new RegExp("(static[\\s]*class[\\s]*" + subClassName + ")", "g"));
-
-							if(subClassIndex > -1){
-								let subClassPrefixBody = prefixText.slice(subClassIndex);
-
-								//Zähle die geschweiften Klammern und schaue ob sie ungerade sind => Man befindet sich in Subclass
-								if((subClassPrefixBody.match(/[\{\}]/g) || []).length % 2 !== 0){
-									isInSubclass = true;
-								}
-							}
-						}
-
-
-						//Sonderfall Konstruktor
-						if(functionName === "<init>" || functionName === "<clinit>"){
-							documentPath.pop();
-							functionComponents.pop();
-							if(isInSubclass){
-								functionName = subClassName;
-							}else{
-								functionName = functionComponents[functionComponents.length - 1];
-							}
-						}
-
-
-
-						//Checke ob mit Leerzeichen beginnt und Klammern folgen
-						if(suffixText.match(/^\(.*\)/) && prefixText.match(/\s$/)){
-
-							//Teste ob entgültiger Funktionsname mit Wort übereinstimmt
-							if (functionName === word) {
-								let pathMatches = true;
-
-								//Teste ob Pfad übereinstimmt
-								for(let i = 1; i < functionComponents.length; i++){
-									if(functionComponents[functionComponents.length - 1 - i] !== documentPath[documentPath.length - i]){
-										pathMatches = false;
-										break;
-									}
-								}
-
-								if(pathMatches){
-									//Anzahl der Parameter der Hoverfunktion erhalten
-									let suffixParts = suffixText.split(')');
-									let suffixParameterCount = (suffixParts[0].match(/,/g) || []).length;
-
-									//Teste ob Parameteranzahl mitgegeben ist und wenn ja, ob sie passt
-									if(!isFunctionParameterCountSet || suffixParameterCount === functionParameterCount){
-										//Sonderbehandlung für Subclasses
-										if((!isSubClass || isInSubclass) && subClassIndex >= highestSubClassIndex){
-											highestSubClassIndex = subClassIndex;
-											hoverTriggered = true;
-											hoverText = "Function: " + definedFunction.name + "\nRuntime: " + definedFunction.runtime + " ms\nEnergy: " + definedFunction.energy + " mWs";
-										}
-									}
-								}
-							}
-						}
+				queryFunctionNames(document, definedFunctions, wordRange, (definedFunction: any) => {
+					hoverTriggered = true;
+					hoverText = "Function: " + definedFunction.name + "\nRuntime: " + definedFunction.runtime + " ms\nEnergy: " + definedFunction.energy + " mWs";
 				});
 
 				if(hoverTriggered){
@@ -237,17 +146,16 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 
 		context.subscriptions.push(disposable);
 	}).catch((error) => {
+		console.log("Test");
 		console.log(error.response);
 	});
 }
 
-function highlight()
+function highlightHotspots(funktionsnamen: any)
 {
 	const activeEditor = vscode.window.activeTextEditor;
 	if(!activeEditor)
 		{return;}
-
-	const funktionsnamen = ["BlockCompressor", "call", "Global"];
 
 	const regex = /\w+/g;
 	const text = activeEditor.document.getText();
@@ -256,17 +164,125 @@ function highlight()
 	let match: any;
 	while ((match = regex.exec(text))) {
 
-
 		const startPos = activeEditor.document.positionAt(match.index);
 		const endPos = activeEditor.document.positionAt(match.index + match[0].length);
-		const decoration = { range: new vscode.Range(startPos, endPos) };
+		let decoration = { range: new vscode.Range(startPos, endPos) };
 
-		funktionsnamen.forEach(function (value){
-			if(match[0] === value) {
-				hotspots.push(decoration);
-			}
+		const wordRange = activeEditor.document.getWordRangeAtPosition(startPos, /\w+/g);
+
+		queryFunctionNames(activeEditor.document, funktionsnamen, wordRange, (definedFunction: any) => {
+		hotspots.push(decoration);
 		});
-		//console.log(match);
+
 	}
 	activeEditor.setDecorations(hotspotsDecoration, hotspots);
+}
+
+
+
+function queryFunctionNames(document: vscode.TextDocument, definedFunctions: any, wordRange: vscode.Range | undefined, callback: Function){
+	let suffixText = "";
+	let prefixText = "";
+
+	if(wordRange){
+		prefixText = document.getText(new vscode.Range(new vscode.Position(0,0), wordRange.start));
+		suffixText = document.getText(new vscode.Range(wordRange.end, new vscode.Position(document.lineCount - 1, Math.max(document.lineAt(document.lineCount - 1).text.length - 1, 0))));
+	}
+	//Das Wort über welches gerade gehovered wird
+	const word = document.getText(wordRange);
+
+	//Speichere am Ende die Subclass, die am nächsten dran ist
+	let highestSubClassIndex = -1;
+
+	//Gehe durch alle Methodennamen
+	definedFunctions.forEach((definedFunction: any) => {
+			let functionDef = definedFunction.name;
+			let isFunctionParameterCountSet = false;
+			let functionParameterCount = 0;
+
+			//Anzahl der Parameter erhalten und Klammern entfernen
+			if(definedFunction.name.indexOf('(') > -1){
+				isFunctionParameterCountSet = true;
+				let functionDefParts = definedFunction.name.split('(');
+				functionDef = functionDefParts[0];
+				functionParameterCount = (functionDefParts[1].match(/,/g) || []).length;
+			}
+
+			//In Pfad aufspalten und Namen erhalten
+			let functionComponents = functionDef.split('.');
+			let functionName = functionComponents[functionComponents.length - 1];
+
+
+			let documentPath = document.uri.toString().replace(".java","").split('/');
+
+
+			let isSubClass = false;
+			let subClassName = "";
+			let isInSubclass = false;
+			let subClassIndex = -1;
+			//Sonderfall Subclass
+			if(functionComponents[functionComponents.length - 2].indexOf('$') > -1){
+				let tempSubClassParts = functionComponents[functionComponents.length - 2].split('$');
+				isSubClass = true;
+				functionComponents[functionComponents.length - 2] = tempSubClassParts[0];
+				subClassName = tempSubClassParts[1];
+
+				subClassIndex = prefixText.search(new RegExp("(static[\\s]*class[\\s]*" + subClassName + ")", "g"));
+
+				if(subClassIndex > -1){
+					let subClassPrefixBody = prefixText.slice(subClassIndex);
+
+					//Zähle die geschweiften Klammern und schaue ob sie ungerade sind => Man befindet sich in Subclass
+					if((subClassPrefixBody.match(/[\{\}]/g) || []).length % 2 !== 0){
+						isInSubclass = true;
+					}
+				}
+			}
+
+
+			//Sonderfall Konstruktor
+			if(functionName === "<init>" || functionName === "<clinit>"){
+				documentPath.pop();
+				functionComponents.pop();
+				if(isInSubclass){
+					functionName = subClassName;
+				}else{
+					functionName = functionComponents[functionComponents.length - 1];
+				}
+			}
+
+
+
+			//Checke ob mit Leerzeichen beginnt und Klammern folgen
+			if(suffixText.match(/^\(.*\)/) && prefixText.match(/\s$/)){
+
+				//Teste ob entgültiger Funktionsname mit Wort übereinstimmt
+				if (functionName === word) {
+					let pathMatches = true;
+
+					//Teste ob Pfad übereinstimmt
+					for(let i = 1; i < functionComponents.length; i++){
+						if(functionComponents[functionComponents.length - 1 - i] !== documentPath[documentPath.length - i]){
+							pathMatches = false;
+							break;
+						}
+					}
+
+					if(pathMatches){
+						//Anzahl der Parameter der Hoverfunktion erhalten
+						let suffixParts = suffixText.split(')');
+						let suffixParameterCount = (suffixParts[0].match(/,/g) || []).length;
+
+						//Teste ob Parameteranzahl mitgegeben ist und wenn ja, ob sie passt
+						if(!isFunctionParameterCountSet || suffixParameterCount === functionParameterCount){
+							//Sonderbehandlung für Subclasses
+							if((!isSubClass || isInSubclass) && subClassIndex >= highestSubClassIndex){
+								highestSubClassIndex = subClassIndex;
+								callback(definedFunction);
+							}
+						}
+					}
+				}
+			}
+	});
 }
