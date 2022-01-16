@@ -1,6 +1,8 @@
 //import Fkt
 import_csv_reader = require('./csv_reader_function');
-
+//compare arrays
+const sortArray = require('sort-array')
+//Server
 const express = require('express');
 const app = express();
 const port = process.env.PORT || 3000;
@@ -23,9 +25,13 @@ app.post('/getMethodParameters', async (req, res) => {
     if(req.body.oldConfig.length>0 && arrayEquals(req.body.oldConfig, req.body.config)){
       let oldConfigMethods = await import_csv_reader.readAndCalcParameters(req.body.oldConfig, "./" + req.body.greenidePackage + ".csv"); //alte config
 
-      hotspotArray = await import_csv_reader.hotspotDetector(methods, oldConfigMethods);  //Aufbau: Array={Element1,...}; Element1={name: string, runtimeHotspot: boolean, energyHotspot: boolean}
-
-      greenspotArray = await import_csv_reader.greenspotDetector(methods, oldConfigMethods); //Aufbau: Array={Element1,...}; Element1={name: string, runtimeGreenspot: boolean, energyGreenspot: boolean}
+      let comparisonArray = await import_csv_reader.compareNewOld(methods ,oldConfigMethods); //Aufbau: Array={Element1,...}; Element1={name: string, runtimeHotspot: (new/old), energyHotspot: (new/old)}
+      hotspotArray = sortArray(comparisonArray,  //array ist wie comparisonarray aufgebaut nur nach hotspots geordnet
+                               {by: 'compare', 
+                                order: 'desc', //descending order
+                                computed: {compare: comparisonArray.runtimespot + comparisonArray.energySpot} //runtime + energy ist die Vergleichsgröße
+                              });  
+      greenspotArray = hotspotArray.reverse; //array ist wie comparisonarray aufgebaut nur nach greenspots geordnet(also umgekehrtes hotspotArray)
     }
     res.send({methods: methods, hotspots: hotspotArray, greenspots: greenspotArray});
   }else{

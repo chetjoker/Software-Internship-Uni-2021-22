@@ -82,10 +82,10 @@ function configMatches(eingabeConfig, zeilenConfig){ //eingabeKonfig vom Fronten
   let configsMatch = true;
 
   for(let i = 0; i < zeilenConfig.length; i++){
-    if(eingabeConfig[i] === 1 && parseInt(zeilenConfig[i]) === 1){ //wenn match bei nur einer 1 dann addiere 
+    if(parseInt(eingabeConfig[i]) === 1 && parseInt(zeilenConfig[i]) === 1){ //wenn match bei nur einer 1 dann addiere 
       configsMatch = true;
     }
-    if(eingabeConfig[i] === 0 && parseInt(zeilenConfig[i]) === 1){ //abbruchbedingung falls in zeilenconfig ne 1 zu viel(missmatch)
+    if(parseInt(eingabeConfig[i]) === 0 && parseInt(zeilenConfig[i]) === 1){ //abbruchbedingung falls in zeilenconfig ne 1 zu viel(missmatch)
           configsMatch = false;
           break;
     }
@@ -94,48 +94,22 @@ function configMatches(eingabeConfig, zeilenConfig){ //eingabeKonfig vom Fronten
   return configsMatch;
 }
 
-function hotspotDetector(methods, oldConfigMethods){//.runtime, .energy
-  let hotspotArray = [];
+function compareNewOld(methods, oldConfigMethods){//.runtime, .energy | vergleicht alten runtimes/energyconsumptions mit neuen und rechnet prozentuale abnahme/zunahme aus
+  let spotArray = [];
   for(i=0;i<methods.length;i++){
       if(methods[i].name===oldConfigMethods[i].name){//falls es sich nicht gleicht, fehler im array
-          let runtimeHotspot = compareMethodparameters(methods[i].runtime, oldConfigMethods[i].runtime);
-          let energyHotspot = compareMethodparameters(methods[i].energy, oldConfigMethods[i].energy);
-          if(runtimeHotspot || energyHotspot){
-              hotspotArray.push({name: methods[i].name, runtimeHotspot: runtimeHotspot, energyHotspot: energyHotspot}); //{name, runtime?, energy?}
-          }
+          let runtimeSpot = compareMethodparameters(methods[i].runtime, oldConfigMethods[i].runtime);
+          let energySpot = compareMethodparameters(methods[i].energy, oldConfigMethods[i].energy);
+          spotArray.push({name: methods[i].name, runtimeSpot: runtimeSpot, energySpot: energySpot}); //{name, runtimeSpot?: (new/old), energySpot: (new/old)}
       }
   }
-  return hotspotArray;
+  return spotArray;
 }
-exports.hotspotDetector = hotspotDetector;//exports function
-
-function greenspotDetector(methods, oldConfigMethods){//.runtime, .energy
-  let greenspotArray = [];
-  for(i=0;i<methods.length;i++){
-      if(methods[i].name===oldConfigMethods[i].name){//falls es sich nicht gleicht, fehler im array
-          let runtimeGreenspot = compareMethodparameters(methods[i].runtime, oldConfigMethods[i].runtime);
-          let energyGreenspot = compareMethodparameters(methods[i].energy, oldConfigMethods[i].energy);
-          if(runtimeGreenspot || energyGreenspot){ //runtime- oder energyhotspot
-            greenspotArray.push({name: methods[i].name, runtimeGreenspot: runtimeGreenspot, energyGreenspot: energyGreenspot}); //{name, runtimeHotspot?: true/false, energyHotspot?: true/false}
-          }
-      }
-  }
-  return greenspotArray;
-}
-exports.greenspotDetector = greenspotDetector;//exports function
+exports.compareNewOld = compareNewOld;//exports function
 
 function compareMethodparameters(wertNeu, wertAlt){
-  if(wertNeu>0 && wertAlt>0){//wenn vorher negative oder danach, kann keine aussage getroffen werden
-    if(wertNeu>wertAlt){ //für Hotspots
-      if((parseFloat(wertNeu)/parseFloat(wertAlt))>=1,5){//50% steigerung oder mehr
-        return true;
-      }
-    }
-    if(wertNeu<wertAlt){ //für Greenspots
-      if((parseFloat(wertNeu)/parseFloat(wertAlt))<=0,5){//50% niedriger oder mehr
-        return true;
-      }
-    }
+  if(wertNeu>=0 && wertAlt>0){//wenn vorher negative oder danach, kann keine aussage getroffen werden
+      return ((parseFloat(wertNeu)/parseFloat(wertAlt))); //rechnet prozent zunahme/abnhame aus
   }
-  return false;
+  return parseFloat(0);
 }

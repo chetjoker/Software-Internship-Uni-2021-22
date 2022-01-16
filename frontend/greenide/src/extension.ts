@@ -97,6 +97,7 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 		let definedFunctions: any = res.data.methods;
 		console.log(definedFunctions);
 		console.log(res.data.hotspots);
+		console.log(res.data.greenspots);
 
 		//Example Hotspot Array
 		let hotspotArray = [{methodname: "kanzi.Global.computeHistogramOrder0", runtimeHotspot: true, energyHotspot: false}, {methodname: "kanzi.Global.initSquash", runtimeHotspot: false, energyHotspot: true}];
