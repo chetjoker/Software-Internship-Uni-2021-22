@@ -38,56 +38,46 @@ function readCSV(filePath){
 exports.readCSV = readCSV;
 
 function readAndCalcParameters(eingabeConfig, /*filePath*/csv_data){
-    /*return new Promise(resolve => {
-        fs.readFile(filePath, 'utf8' , (err, data) => {
-            if (err) {
-              console.error(err);
-              return;
-            }
-            let zeilen = data.split('\n');*/
-            let zeilen = csv_data.split('\n');
-            zeilen.shift();//nimmt erste Zeile raus
+  let zeilen = csv_data.split('\n');
+  zeilen.shift();//nimmt erste Zeile raus
 
-            //Zwischenspeicher für Berechnungen
-            let ersteZeile = zeilen[0].split('"');
-            let currentMethodName = ersteZeile[1];
-            let currentRuntime = 0;
-            let currentEnergy = 0;
+  //Zwischenspeicher für Berechnungen
+  let ersteZeile = zeilen[0].split('"');
+  let currentMethodName = ersteZeile[1];
+  let currentRuntime = 0;
+  let currentEnergy = 0;
 
-            //Rückkgabearray
-            let calculatedMethods = [];
+  //Rückkgabearray
+  let calculatedMethods = [];
 
-            //Gehe Zeile für Zeile durch
-            zeilen.forEach((zeile) => {
-              if(zeile !== ""){      
-                  let zeilenTemp = zeile.split('"');
-                  let zeilenMethodenname = zeilenTemp[1];
-                  let zeilenarray = zeilenTemp[2].split(',');
+  //Gehe Zeile für Zeile durch
+  zeilen.forEach((zeile) => {
+    if(zeile !== ""){      
+        let zeilenTemp = zeile.split('"');
+        let zeilenMethodenname = zeilenTemp[1];
+        let zeilenarray = zeilenTemp[2].split(',');
 
-                  let zeilenConfig = zeilenarray.slice(1,zeilenarray.length-2);
+        let zeilenConfig = zeilenarray.slice(1,zeilenarray.length-2);
 
-                  //Methodenname der aktuellen Zeile
-                  if(currentMethodName !== zeilenMethodenname){
-                      //Fertig berechnete Methode wird in Rückgabearray gepusht
-                        //console.log(currentMethodName,currentEnergy, currentRuntime);
-                      calculatedMethods.push({name: currentMethodName, runtime: currentRuntime, energy: currentEnergy});
-                      //Setze CurrentMethodenname auf neue sMethode und resette Runtime und Energy für Neuberechnung
-                      currentMethodName = zeilenMethodenname;
-                      currentRuntime = 0;
-                      currentEnergy = 0;
-                  }
+        //Methodenname der aktuellen Zeile
+        if(currentMethodName !== zeilenMethodenname){
+            //Fertig berechnete Methode wird in Rückgabearray gepusht
+              //console.log(currentMethodName,currentEnergy, currentRuntime);
+            calculatedMethods.push({name: currentMethodName, runtime: currentRuntime, energy: currentEnergy});
+            //Setze CurrentMethodenname auf neue sMethode und resette Runtime und Energy für Neuberechnung
+            currentMethodName = zeilenMethodenname;
+            currentRuntime = 0;
+            currentEnergy = 0;
+        }
 
-                  //Wenn die Zeilenconfig mit der Eingabeconfig passt, dann addiere Werte der Zeile
-                  if(configMatches(eingabeConfig, zeilenConfig)){
-                      currentRuntime += parseFloat(zeilenarray[zeilenarray.length-2]); //addiere Runtime der Zeile
-                      currentEnergy += parseFloat(zeilenarray[zeilenarray.length-1]); //addiere Energy der Zeile
-                  }
-              }
-            });
-            //resolve(calculatedMethods);
-            return calculatedMethods;
-        //});
-    //})
+        //Wenn die Zeilenconfig mit der Eingabeconfig passt, dann addiere Werte der Zeile
+        if(configMatches(eingabeConfig, zeilenConfig)){
+            currentRuntime += parseFloat(zeilenarray[zeilenarray.length-2]); //addiere Runtime der Zeile
+            currentEnergy += parseFloat(zeilenarray[zeilenarray.length-1]); //addiere Energy der Zeile
+        }
+    }
+  });
+  return calculatedMethods;
 }
 exports.readAndCalcParameters = readAndCalcParameters;//exports function
 
