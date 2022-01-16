@@ -97,10 +97,14 @@ function configMatches(eingabeConfig, zeilenConfig){ //eingabeKonfig vom Fronten
 function compareNewOld(methods, oldConfigMethods){//.runtime, .energy | vergleicht alten runtimes/energyconsumptions mit neuen und rechnet prozentuale abnahme/zunahme aus
   let spotArray = [];
   for(i=0;i<methods.length;i++){
+      console.log("testausgabe VOR namensabgleich")
       if(methods[i].name===oldConfigMethods[i].name){//falls es sich nicht gleicht, fehler im array
-          let runtimeSpot = compareMethodparameters(methods[i].runtime, oldConfigMethods[i].runtime);
-          let energySpot = compareMethodparameters(methods[i].energy, oldConfigMethods[i].energy);
+        console.log("testausgabe NACH namensabgleich") 
+        let runtimeSpot = compareMethodparameters(methods[i].runtime, oldConfigMethods[i].runtime);
+        let energySpot = compareMethodparameters(methods[i].energy, oldConfigMethods[i].energy);
+        if(runtimeSpot!==0 && energySpot!==0){//nur lement hinzufügen falls keiner der beiden Werte 0 ist, da die Werte sonst fehlerhaft sind
           spotArray.push({name: methods[i].name, runtimeSpot: runtimeSpot, energySpot: energySpot}); //{name, runtimeSpot?: (new/old), energySpot: (new/old)}
+        }          
       }
   }
   return spotArray;
