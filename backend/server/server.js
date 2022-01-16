@@ -23,6 +23,7 @@ app.post('/getMethodParameters', async (req, res) => {
     let methods = await import_csv_reader.readAndCalcParameters(req.body.config, "./" + req.body.greenidePackage + ".csv"); //neue config
 
     if(req.body.oldConfig.length>0 && arrayEquals(req.body.oldConfig, req.body.config)){
+      console.log("arrayEquals richtig?")
       let oldConfigMethods = await import_csv_reader.readAndCalcParameters(req.body.oldConfig, "./" + req.body.greenidePackage + ".csv"); //alte config
 
       let comparisonArray = await import_csv_reader.compareNewOld(methods ,oldConfigMethods); //Aufbau: Array={Element1,...}; Element1={name: string, runtimeHotspot: (new/old), energyHotspot: (new/old)}
