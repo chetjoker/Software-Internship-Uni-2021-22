@@ -30,9 +30,9 @@ app.post('/getMethodParameters', async (req, res) => {
       hotspotArray = sortArray(comparisonArray,  //array ist wie comparisonarray aufgebaut nur nach hotspots geordnet
                                {by: 'compare', 
                                 order: 'desc', //descending order
-                                computed: {compare: comparisonArray.runtimespot + comparisonArray.energySpot} //runtime + energy ist die Vergleichsgröße
+                                computed: { compare: comparisonArray => comparisonArray.runtimespot + comparisonArray.energySpot } //runtime + energy ist die Vergleichsgröße
                               });  
-      greenspotArray = hotspotArray.reverse; //umgekehrtes hotspotArray
+      greenspotArray = hotspotArray.reverse(); //umgekehrtes hotspotArray
     }
     res.send({methods: methods, hotspots: hotspotArray, greenspots: greenspotArray});
   }else{
