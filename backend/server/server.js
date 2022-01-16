@@ -27,16 +27,18 @@ app.post('/getMethodParameters', async (req, res) => {
       let oldConfigMethods = await import_csv_reader.readAndCalcParameters(req.body.oldConfig, "./" + req.body.greenidePackage + ".csv"); //alte config
 
       let comparisonArray = await import_csv_reader.compareNewOld(methods ,oldConfigMethods); //Aufbau: Array={Element1,...}; Element1={name: string, runtimeHotspot: (new/old), energyHotspot: (new/old)}
-      hotspotArray = sortArray(comparisonArray,  //array ist wie comparisonarray aufgebaut nur nach hotspots geordnet
+      /*hotspotArray = sortArray(comparisonArray,  //array ist wie comparisonarray aufgebaut nur nach hotspots geordnet
                                      {by: 'compare', 
                                       order: 'desc', //descending order
                                       computed: { compare: comparisonArray => comparisonArray.runtimeSpot + comparisonArray.energySpot } //runtime + energy ist die Vergleichsgröße
-                                    }).reverse(); 
+                                    }); */
       greenspotArray = sortArray(comparisonArray,  //array ist wie comparisonarray aufgebaut nur nach hotspots geordnet
                                   {by: 'compare', 
                                   order: 'asc', //descending order
                                   computed: { compare: comparisonArray => comparisonArray.runtimeSpot + comparisonArray.energySpot } //runtime + energy ist die Vergleichsgröße
-                                });; //umgekehrtes hotspotArray
+                                }); //umgekehrtes hotspotArray
+      let tempArray = greenspotArray
+      hotspotArray = tempArray.reverse();
     }
     res.send({methods: methods, hotspots: hotspotArray, greenspots: greenspotArray});
   }else{
