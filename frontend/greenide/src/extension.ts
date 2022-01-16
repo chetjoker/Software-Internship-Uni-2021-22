@@ -100,7 +100,7 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 		console.log(res.data.greenspots);
 
 		//Example Hotspot Array
-		let hotspotArray = [{methodname: "kanzi.Global.computeHistogramOrder0", runtimeHotspot: true, energyHotspot: false}, {methodname: "kanzi.Global.initSquash", runtimeHotspot: false, energyHotspot: true}];
+		let hotspotArray = [{name: "kanzi.Global.computeHistogramOrder0", runtimeHotspot: 0.9, energyHotspot: 1.1}, {name: "kanzi.Global.initSquash", runtimeHotspot: 0.6, energyHotspot: 0.3}];
 		//greenspotarray analog 
 
 		context.subscriptions.forEach((disposable: vscode.Disposable) => {
