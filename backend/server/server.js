@@ -22,7 +22,7 @@ app.post('/getMethodParameters', async (req, res) => {
 
     let methods = await import_csv_reader.readAndCalcParameters(req.body.config, "./" + req.body.greenidePackage + ".csv"); //neue config
 
-    if(req.body.oldConfig.length>0 && arrayEquals(req.body.oldConfig, req.body.config)){
+    if(req.body.oldConfig.length>0/* && arrayEquals(req.body.oldConfig, req.body.config)*/){
       console.log("arrayEquals richtig?")
       let oldConfigMethods = await import_csv_reader.readAndCalcParameters(req.body.oldConfig, "./" + req.body.greenidePackage + ".csv"); //alte config
 
@@ -53,7 +53,7 @@ app.listen(port, () => {
   console.log(`Listening at ${port}`)
 })
 
-function arrayEquals(array1, array2){
+/*function arrayEquals(array1, array2){
   let isEqual = true
   if(array1.length === array2.length){
     array1.forEach((element, index) => {
@@ -66,8 +66,4 @@ function arrayEquals(array1, array2){
     isEqual=false;
   }
   return isEqual;
-}
-
-app.post('/test', async (req, res) => {
-  res.send(req.body.test); 
-})
+}*/
