@@ -5,6 +5,7 @@ import axios from 'axios';
 
 // is required to read and wirte files with Node.js
 import * as fs from 'fs';
+import { reverse } from 'dns';
 
 const path = require('path');
 
@@ -96,10 +97,10 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 	axios.post("http://server-backend-swtp-13.herokuapp.com/getMethodParameters", {config: configArray, greenidePackage: greenidePackage, oldConfig: []}, {}).then(res => {
 		let definedFunctions: any = res.data.methods;
 		let hotspots: any = res.data.hotspots;
-		let greenspots: any = res.data.greenspots;
+		let greenspots: any = res.data.hotspots.reverse();
 		console.log(definedFunctions);
 		console.log(hotspots);
-		console.log(greenspots.reverse());
+		console.log(greenspots);
 
 		//Example Hotspot Array
 		let hotspotArray = [{name: "kanzi.Global.computeHistogramOrder0", runtimeHotspot: 0.9, energyHotspot: 1.1}, {name: "kanzi.Global.initSquash", runtimeHotspot: 0.6, energyHotspot: 0.3}];
