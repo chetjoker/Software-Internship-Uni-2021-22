@@ -33,9 +33,7 @@ export function deactivate() {}
 function initializeGreenide(context: vscode.ExtensionContext, greenidePackage : string){
 
 	//Request Parameterlist from Server
-	console.log("test1");
 	axios.post("http://server-backend-swtp-13.herokuapp.com/getParameters", {greenidePackage: greenidePackage}, {}).then(res => {
-		console.log("test2");
 		if(folderPath){
 			let standardConfigKeys : string[] = res.data;
 
@@ -96,11 +94,15 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 	//Abfrage zum Server
 	axios.post("http://server-backend-swtp-13.herokuapp.com/getMethodParameters", {config: configArray, greenidePackage: greenidePackage, oldConfig: []}, {}).then(res => {
 		let definedFunctions: any = res.data.methods;
-		let hotspots: any = res.data.hotspots;
-		let greenspots: any = [].concat(hotspots).reverse();
-		console.log(definedFunctions);
-		console.log(hotspots);
-		console.log(greenspots);
+		let hotspotRuntime: any = res.data.hotspotRuntime;
+		let hotspotEnergy: any = res.data.hotspotEnergy;
+		let greenspotRuntime: any = [].concat(hotspotRuntime).reverse();
+		let greenspotEnergy: any = [].concat(hotspotEnergy).reverse();
+		console.log("Funktionen:", definedFunctions);
+		console.log("Runtime-Hotspots:", hotspotRuntime);
+		console.log("Energy-Hotspots:", hotspotEnergy);
+		console.log("Runtime-Greenspots:", greenspotRuntime);
+		console.log("Energy-Greenspots:", greenspotEnergy);
 
 		//Example Hotspot Array
 		let hotspotArray = [{name: "kanzi.Global.computeHistogramOrder0", runtimeHotspot: 0.9, energyHotspot: 1.1}, {name: "kanzi.Global.initSquash", runtimeHotspot: 0.6, energyHotspot: 0.3}];

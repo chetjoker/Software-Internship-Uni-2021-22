@@ -17,23 +17,26 @@ app.post('/getMethodParameters', async (req, res) => {
   if(req.body.config && req.body.greenidePackage && req.body.oldConfig){ // && req.body.oldConfig
     //test alteconfig
     req.body.oldConfig = [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-    let hotspotArray = [];
-    let greenspotArray = [];
+    let hotspotRuntime = [];
+    let hotspotEnergy = [];
 
     let methods = await import_csv_reader.readAndCalcParameters(req.body.config, "./" + req.body.greenidePackage + ".csv"); //neue config
 
     if( req.body.oldConfig.length>0 && !arrayEquals(req.body.oldConfig, req.body.config) ){
-      console.log("arrayEquals richtig?")
-      let oldConfigMethods = await import_csv_reader.readAndCalcParameters(req.body.oldConfig, "./" + req.body.greenidePackage + ".csv"); //alte config
-
+      let oldConfigMethods = await import_csv_reader.readAndCalcParameters(req.body.oldConfig, "./" + req.body.greenidePackage + ".csv"); //alte config wird berechnet
       let comparisonArray = await import_csv_reader.compareNewOld(methods ,oldConfigMethods); //Aufbau: Array={Element1,...}; Element1={name: string, runtimeHotspot: (new/old), energyHotspot: (new/old)}
-      hotspotArray = sortArray(comparisonArray,  //array ist wie comparisonarray aufgebaut nur nach hotspots geordnet
-                                     {by: 'compare', 
-                                      order: 'desc', //descending order
-                                      computed: { compare: comparisonArray => comparisonArray.runtimeSpot + comparisonArray.energySpot } //runtime + energy ist die Vergleichsgröße
-                                    }); 
+      hotspotRuntime = sortArray(comparisonArray,  //array ist wie comparisonarray aufgebaut nur nach hotspots geordnet
+                               {by: 'compare', 
+                                order: 'desc', //descending order
+                                computed: { compare: comparisonArray => comparisonArray.runtimeSpot}} //runtime ist die Vergleichsgröße
+                              ); 
+      hotspotEnergy = sortArray(comparisonArray,  //array ist wie comparisonarray aufgebaut nur nach hotspots geordnet
+                                {by: 'compare', 
+                                 order: 'desc', //descending order
+                                 computed: { compare: comparisonArray => comparisonArray.energySpot}} //runtime ist die Vergleichsgröße
+                               ); 
     }
-    res.send({methods: methods, hotspots: hotspotArray});//sendet methodArray und hotspotArray(für greenspotArray muss hotspotArray nur reversed werden)
+    res.send({methods: methods, hotspotRuntime: hotspotRuntime, hotspotEnergy: hotspotEnergy});//sendet methodArray, hotspotruntime und -energy(für greenspots muss hotspot nur reversed werden)
   }else{
     res.send("config not found");  
   }
@@ -58,7 +61,6 @@ function arrayEquals(array1, array2){
     array1.forEach((element, index) => {
       if(element !== array2[index]){
         isEqual=false;
-        //break;
       }
     });
   } else {
