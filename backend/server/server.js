@@ -20,10 +20,11 @@ app.post('/getMethodParameters', async (req, res) => {
     let hotspotRuntime = [];
     let hotspotEnergy = [];
 
-    let methods = await import_csv_reader.readAndCalcParameters(req.body.config, "./" + req.body.greenidePackage + ".csv"); //neue config
+    let csv_data = await import_csv_reader.readCSV("./" + req.body.greenidePackage + ".csv");
+    let methods = await import_csv_reader.readAndCalcParameters(req.body.config, csv_data)//"./" + req.body.greenidePackage + ".csv"); //neue config
 
     if( req.body.oldConfig.length>0 && !arrayEquals(req.body.oldConfig, req.body.config) ){
-      let oldConfigMethods = await import_csv_reader.readAndCalcParameters(req.body.oldConfig, "./" + req.body.greenidePackage + ".csv"); //alte config wird berechnet
+      let oldConfigMethods = await import_csv_reader.readAndCalcParameters(req.body.oldConfig, csv_data)//"./" + req.body.greenidePackage + ".csv"); //alte config wird berechnet
       let comparisonArray = await import_csv_reader.compareNewOld(methods ,oldConfigMethods); //Aufbau: Array={Element1,...}; Element1={name: string, runtimeHotspot: (new/old), energyHotspot: (new/old)}
       hotspotRuntime = [].concat(sortArray(comparisonArray,  //array ist wie comparisonarray aufgebaut nur nach hotspots geordnet
                                            {by: 'compare', 

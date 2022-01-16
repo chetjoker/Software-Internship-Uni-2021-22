@@ -24,16 +24,28 @@ function readConfigParameters(filePath){
 }
 exports.readConfigParameters = readConfigParameters;//exports function
 
+function readCSV(filePath){
+  return new Promise(resolve => {
+    fs.readFile(filePath, 'utf8' , (err, data) => {
+        if (err) {
+          console.error(err);
+          return;
+        }
+        resolve(data);
+    });
+  });
+}
+exports.readCSV = readCSV;
 
-function readAndCalcParameters(eingabeConfig, filePath){
-    return new Promise(resolve => {
+function readAndCalcParameters(eingabeConfig, /*filePath*/csv_data){
+    /*return new Promise(resolve => {
         fs.readFile(filePath, 'utf8' , (err, data) => {
             if (err) {
               console.error(err);
               return;
             }
-
-            let zeilen = data.split('\n');
+            let zeilen = data.split('\n');*/
+            let zeilen = csv_data.split('\n');
             zeilen.shift();//nimmt erste Zeile raus
 
             //Zwischenspeicher für Berechnungen
@@ -72,9 +84,10 @@ function readAndCalcParameters(eingabeConfig, filePath){
                   }
               }
             });
-            resolve(calculatedMethods);
-        });
-    })
+            //resolve(calculatedMethods);
+            return calculatedMethods;
+        //});
+    //})
 }
 exports.readAndCalcParameters = readAndCalcParameters;//exports function
 
