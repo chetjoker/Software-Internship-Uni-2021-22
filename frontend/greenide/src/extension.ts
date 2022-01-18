@@ -13,11 +13,20 @@ let folderPath = vscode.workspace.workspaceFolders?.map(folder => folder.uri.fsP
 
 const configName = "greenide.config";
 
+let colorLight = '#d65c5e';
+let colorDark = '#a82a2d';
+
 // decortor type for hotspots
 const hotspotsDecoration = vscode.window.createTextEditorDecorationType({
-	overviewRulerColor: '#a82a2d',
 	overviewRulerLane: vscode.OverviewRulerLane.Full,
-	backgroundColor: '#a82a2d',
+	light: {
+		backgroundColor: colorLight,
+		overviewRulerColor: colorLight,
+	},
+	dark: {
+		backgroundColor: colorDark,
+		overviewRulerColor: colorDark,
+	}
 });
 
 // this method is called when your extension is activated
@@ -111,7 +120,6 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 
 		//Example Hotspot Array
 		let hotspotArray = [{name: "kanzi.Global.computeHistogramOrder0"}, {name: "kanzi.Global.initSquash"}, {name: "kanzi.entropy.ANSRangeEncoder.encodeChunk"}];
-
 		highlightHotspots(hotspotArray);
 
 		vscode.window.onDidChangeVisibleTextEditors(event => {
