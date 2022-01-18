@@ -96,8 +96,8 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 		let definedFunctions: any = res.data.methods;
 		let hotspotRuntime: any = res.data.hotspotRuntime;
 		let hotspotEnergy: any = res.data.hotspotEnergy;
-		let greenspotRuntime: any = [].concat(hotspotRuntime).reverse();
-		let greenspotEnergy: any = [].concat(hotspotEnergy).reverse();
+		let greenspotRuntime: any = [].concat(hotspotRuntime).reverse();//Achtung die ersten Element werden immer -1 als runtime- und energyHotspot haben
+		let greenspotEnergy: any = [].concat(hotspotEnergy).reverse();  //same thing
 		console.log("Funktionen:", definedFunctions);
 		console.log("Runtime-Hotspots:", hotspotRuntime);
 		console.log("Energy-Hotspots:", hotspotEnergy);
