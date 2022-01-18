@@ -42,8 +42,6 @@ package_extension:
 deploy:
   stage: deploy
   image: ruby:latest
-  only:
-    - develop
   before_script:
     - gem install dpl 
     - cd backend/server

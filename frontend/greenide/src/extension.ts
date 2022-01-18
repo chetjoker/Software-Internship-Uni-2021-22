@@ -146,7 +146,6 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 
 		context.subscriptions.push(disposable);
 	}).catch((error) => {
-		console.log("Test");
 		console.log(error.response);
 	});
 }
