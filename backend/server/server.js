@@ -14,9 +14,7 @@ app.use(express.urlencoded({
 }));
 
 app.post('/getMethodParameters', async (req, res) => {
-  if(req.body.config && req.body.greenidePackage && req.body.oldConfig){ // && req.body.oldConfig
-    //test alteconfig
-    req.body.oldConfig = [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+  if(req.body.config && req.body.greenidePackage && req.body.oldConfig){
     let hotspotRuntime = [];
     let hotspotEnergy = [];
 

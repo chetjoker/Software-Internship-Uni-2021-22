@@ -13,6 +13,7 @@ const path = require('path');
 let folderPath = vscode.workspace.workspaceFolders?.map(folder => folder.uri.fsPath);
 
 const configName = "greenide.config";
+const defaultConfigName = "greenide.default.config";
 
 // decortor type for hotspots
 const hotspotsDecoration = vscode.window.createTextEditorDecorationType({
@@ -38,6 +39,9 @@ const greenspotDecoration = vscode.window.createTextEditorDecorationType({
 		overviewRulerColor: '#07ad0c',
 	}
 });
+
+let configArrayCache : any[] = []
+let defaultConfigArrayCache : any[] = []
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -76,21 +80,33 @@ function initializeGreenide(context: vscode.ExtensionContext, greenidePackage : 
 				if (!fs.existsSync(path.join(folderPath[0], configName))) {
 					fs.writeFileSync(path.join(folderPath[0], configName), JSON.stringify(standardConfig));
 				}
+				if (!fs.existsSync(path.join(folderPath[0], defaultConfigName))) {
+					fs.writeFileSync(path.join(folderPath[0], defaultConfigName), JSON.stringify(standardConfig));
+				}
 			} catch(err) {
 				console.error(err);
 			}
 
-			let configArray = readConfig();
+			let configArray = readConfig(configName);
+			let defaultConfigArray = readConfig(defaultConfigName);
 
-			registerNewMethodHover(context, configArray, greenidePackage);
+			configArrayCache = configArray
+			defaultConfigArrayCache = defaultConfigArray
+
+			registerNewMethodHover(context, configArray, defaultConfigArray, greenidePackage);
 		}
 
 		vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
 			if(folderPath){
 				if (document.fileName === path.join(folderPath[0], configName)) {
-					let configArray = readConfig();
+					let configArray = readConfig(configName);
 
-					registerNewMethodHover(context, configArray, greenidePackage);
+					registerNewMethodHover(context, configArray, defaultConfigArrayCache, greenidePackage);
+				}
+				if (document.fileName === path.join(folderPath[0], defaultConfigName)) {
+					let defaultConfigArray = readConfig(defaultConfigName);
+
+					registerNewMethodHover(context, configArrayCache, defaultConfigArray, greenidePackage);
 				}
 			}
 		});
@@ -98,8 +114,8 @@ function initializeGreenide(context: vscode.ExtensionContext, greenidePackage : 
 	});
 }
 
-function readConfig(){ 
-	let configArray = [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+function readConfig(configName: string){ 
+	let configArray: number[] = [];
 
 	if(folderPath){
 		let fileContent = fs.readFileSync(path.join(folderPath[0], configName));
@@ -114,10 +130,10 @@ function readConfig(){
 	return configArray;
 }
 
-function registerNewMethodHover(context: vscode.ExtensionContext, configArray: any[], greenidePackage : string){
+function registerNewMethodHover(context: vscode.ExtensionContext, configArray: any[], defaultConfigArray: any[], greenidePackage : string){
 
 	//Abfrage zum Server
-	axios.post("http://server-backend-swtp-13.herokuapp.com/getMethodParameters", {config: configArray, greenidePackage: greenidePackage, oldConfig: []}, {}).then(res => {
+	axios.post("http://server-backend-swtp-13.herokuapp.com/getMethodParameters", {config: configArray, greenidePackage: greenidePackage, oldConfig: defaultConfigArray}, {}).then(res => {
 		let definedFunctions: any = res.data.methods;
 		let hotspotRuntime: any = res.data.hotspotRuntime;
 		let hotspotEnergy: any = res.data.hotspotEnergy;
@@ -136,11 +152,11 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 			disposable.dispose();
 		});
 
-		highlightHotAndGreenspots(hotspotRuntime, hotspotEnergy, greenspotRuntime, greenspotEnergy, 30);
+		highlightHotAndGreenspots(hotspotRuntime, hotspotEnergy, greenspotRuntime, greenspotEnergy, 10);
 
 		vscode.window.onDidChangeVisibleTextEditors(event => {
 			console.log("onDidChangeVisibleTextEditors");
-			highlightHotAndGreenspots(hotspotRuntime, hotspotEnergy, greenspotRuntime, greenspotEnergy, 30);
+			highlightHotAndGreenspots(hotspotRuntime, hotspotEnergy, greenspotRuntime, greenspotEnergy, 10);
 		}, null, context.subscriptions);
 
 		let disposable = vscode.languages.registerHoverProvider({language: 'java', scheme: 'file'},{
