@@ -88,7 +88,6 @@ function readConfig(){
 	return configArray;
 }
 
-
 function registerNewMethodHover(context: vscode.ExtensionContext, configArray: any[], greenidePackage : string){
 	
 	//Abfrage zum Server
