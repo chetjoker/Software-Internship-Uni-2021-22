@@ -19,8 +19,8 @@ const defaultConfigName = "greenide.default.config";
 const hotspotsDecoration = vscode.window.createTextEditorDecorationType({
 	overviewRulerLane: vscode.OverviewRulerLane.Full,
 	light: {
-		backgroundColor: '#d65c5e',
-		overviewRulerColor: '#d65c5e',
+		backgroundColor: '#bf6161',//'#d65c5e',
+		overviewRulerColor: '#bf6161',//'#d65c5e',
 	},
 	dark: {
 		backgroundColor: '#a82a2d',
@@ -31,17 +31,17 @@ const hotspotsDecoration = vscode.window.createTextEditorDecorationType({
 const greenspotDecoration = vscode.window.createTextEditorDecorationType({
 	overviewRulerLane: vscode.OverviewRulerLane.Full,
 	light: {
-		backgroundColor: '#51d655',
-		overviewRulerColor: '#51d655',
+		backgroundColor: '#6aa84f',//'#51d655',
+		overviewRulerColor: '#6aa84f',//'#51d655',
 	},
 	dark: {
-		backgroundColor: '#07ad0c',
-		overviewRulerColor: '#07ad0c',
+		backgroundColor: '#274e13',//'#07ad0c',
+		overviewRulerColor: '#274e13'//'#07ad0c',
 	}
 });
 
-let configArrayCache : any[] = []
-let defaultConfigArrayCache : any[] = []
+let configArrayCache : any[] = [];
+let defaultConfigArrayCache : any[] = [];
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -90,8 +90,8 @@ function initializeGreenide(context: vscode.ExtensionContext, greenidePackage : 
 			let configArray = readConfig(configName);
 			let defaultConfigArray = readConfig(defaultConfigName);
 
-			configArrayCache = configArray
-			defaultConfigArrayCache = defaultConfigArray
+			configArrayCache = configArray;
+			defaultConfigArrayCache = defaultConfigArray;
 
 			registerNewMethodHover(context, configArray, defaultConfigArray, greenidePackage);
 		}
@@ -174,19 +174,19 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 					let isInArray = false;
 					for(const hotspot of hotspotRuntime){
 						if(hotspot.name === definedFunction.name){
-							const runtimeChange = (definedFunction.runtime - (definedFunction.runtime / hotspot.runtimeSpot))
-							const energyChange = (definedFunction.energy - (definedFunction.energy / hotspot.energySpot))
+							const runtimeChange = (definedFunction.runtime - (definedFunction.runtime / hotspot.runtimeSpot));
+							const energyChange = (definedFunction.energy - (definedFunction.energy / hotspot.energySpot));
 
-							hoverText += "\nRuntimeChange: " + (runtimeChange > 0 ? '+' : '') + runtimeChange.toFixed(2) + " ms"
-							hoverText += "\nEnergyChange: " + (runtimeChange > 0 ? '+' : '') + energyChange.toFixed(2) + " mWs"
+							hoverText += "\nRuntimeChange: " + (runtimeChange > 0 ? '+' : '') + runtimeChange.toFixed(2) + " ms";
+							hoverText += "\nEnergyChange: " + (runtimeChange > 0 ? '+' : '') + energyChange.toFixed(2) + " mWs";
 							isInArray = true;
 						}
 					}
 
 					if(!isInArray){
 						//Negativer Hotspot
-						hoverText += "\nRuntimeChange: NaN"
-						hoverText += "\nEnergyChange: NaN"
+						hoverText += "\nRuntimeChange: NaN";
+						hoverText += "\nEnergyChange: NaN";
 					}
 				});
 
@@ -260,7 +260,7 @@ function highlightSpots(funktionsnamen: any, count: number)
 
 	}
 
-	return hotspots
+	return hotspots;
 }
 
 
