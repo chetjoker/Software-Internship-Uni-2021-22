@@ -5,6 +5,7 @@ import axios from 'axios';
 
 // is required to read and wirte files with Node.js
 import * as fs from 'fs';
+import { reverse } from 'dns';
 
 const path = require('path');
 
@@ -49,7 +50,6 @@ function initializeGreenide(context: vscode.ExtensionContext, greenidePackage : 
 
 	//Request Parameterlist from Server
 	axios.post("http://server-backend-swtp-13.herokuapp.com/getParameters", {greenidePackage: greenidePackage}, {}).then(res => {
-
 		if(folderPath){
 			let standardConfigKeys : string[] = res.data;
 
@@ -89,8 +89,9 @@ function initializeGreenide(context: vscode.ExtensionContext, greenidePackage : 
 	});
 }
 
-function readConfig(){
+function readConfig(){ 
 	let configArray = [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+
 	if(folderPath){
 		let fileContent = fs.readFileSync(path.join(folderPath[0], configName));
 
@@ -104,13 +105,24 @@ function readConfig(){
 	return configArray;
 }
 
-
 function registerNewMethodHover(context: vscode.ExtensionContext, configArray: any[], greenidePackage : string){
 
 	//Abfrage zum Server
-	axios.post("http://server-backend-swtp-13.herokuapp.com/getMethodParameters", {config: configArray, greenidePackage: greenidePackage}, {}).then(res => {
+	axios.post("http://server-backend-swtp-13.herokuapp.com/getMethodParameters", {config: configArray, greenidePackage: greenidePackage, oldConfig: []}, {}).then(res => {
+		let definedFunctions: any = res.data.methods;
+		let hotspotRuntime: any = res.data.hotspotRuntime;
+		let hotspotEnergy: any = res.data.hotspotEnergy;
+		let greenspotRuntime: any = [].concat(hotspotRuntime).reverse();//Achtung die ersten Element werden immer -1 als runtime- und energyHotspot haben
+		let greenspotEnergy: any = [].concat(hotspotEnergy).reverse();  //same thing
+		console.log("Funktionen:", definedFunctions);
+		console.log("Runtime-Hotspots:", hotspotRuntime);
+		console.log("Energy-Hotspots:", hotspotEnergy);
+		console.log("Runtime-Greenspots:", greenspotRuntime);
+		console.log("Energy-Greenspots:", greenspotEnergy);
 
-		let definedFunctions: any = res.data;
+		//Example Hotspot Array
+		let hotspotArray = [{name: "kanzi.Global.computeHistogramOrder0", runtimeHotspot: 0.9, energyHotspot: 1.1}, {name: "kanzi.Global.initSquash", runtimeHotspot: 0.6, energyHotspot: 0.3}];
+		//greenspotarray analog 
 
 		//Entferne vorherige HoverProvider
 		context.subscriptions.forEach((disposable: vscode.Disposable) => {
