@@ -13,6 +13,35 @@ const path = require('path');
 let folderPath = vscode.workspace.workspaceFolders?.map(folder => folder.uri.fsPath);
 
 const configName = "greenide.config";
+const defaultConfigName = "greenide.default.config";
+
+// decortor type for hotspots
+const hotspotsDecoration = vscode.window.createTextEditorDecorationType({
+	overviewRulerLane: vscode.OverviewRulerLane.Full,
+	light: {
+		backgroundColor: '#d65c5e',
+		overviewRulerColor: '#d65c5e',
+	},
+	dark: {
+		backgroundColor: '#a82a2d',
+		overviewRulerColor: '#a82a2d',
+	}
+});
+
+const greenspotDecoration = vscode.window.createTextEditorDecorationType({
+	overviewRulerLane: vscode.OverviewRulerLane.Full,
+	light: {
+		backgroundColor: '#51d655',
+		overviewRulerColor: '#51d655',
+	},
+	dark: {
+		backgroundColor: '#07ad0c',
+		overviewRulerColor: '#07ad0c',
+	}
+});
+
+let configArrayCache : any[] = []
+let defaultConfigArrayCache : any[] = []
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -51,29 +80,42 @@ function initializeGreenide(context: vscode.ExtensionContext, greenidePackage : 
 				if (!fs.existsSync(path.join(folderPath[0], configName))) {
 					fs.writeFileSync(path.join(folderPath[0], configName), JSON.stringify(standardConfig));
 				}
+				if (!fs.existsSync(path.join(folderPath[0], defaultConfigName))) {
+					fs.writeFileSync(path.join(folderPath[0], defaultConfigName), JSON.stringify(standardConfig));
+				}
 			} catch(err) {
 				console.error(err);
 			}
 
-			let configArray = readConfig();
+			let configArray = readConfig(configName);
+			let defaultConfigArray = readConfig(defaultConfigName);
 
-			registerNewMethodHover(context, configArray, greenidePackage);
+			configArrayCache = configArray
+			defaultConfigArrayCache = defaultConfigArray
+
+			registerNewMethodHover(context, configArray, defaultConfigArray, greenidePackage);
 		}
 
 		vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
 			if(folderPath){
 				if (document.fileName === path.join(folderPath[0], configName)) {
-					let configArray = readConfig();
-	
-					registerNewMethodHover(context, configArray, greenidePackage);
+					let configArray = readConfig(configName);
+
+					registerNewMethodHover(context, configArray, defaultConfigArrayCache, greenidePackage);
+				}
+				if (document.fileName === path.join(folderPath[0], defaultConfigName)) {
+					let defaultConfigArray = readConfig(defaultConfigName);
+
+					registerNewMethodHover(context, configArrayCache, defaultConfigArray, greenidePackage);
 				}
 			}
 		});
+
 	});
 }
 
-function readConfig(){ 
-	let configArray = [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+function readConfig(configName: string){ 
+	let configArray: number[] = [];
 
 	if(folderPath){
 		let fileContent = fs.readFileSync(path.join(folderPath[0], configName));
@@ -88,28 +130,33 @@ function readConfig(){
 	return configArray;
 }
 
-function registerNewMethodHover(context: vscode.ExtensionContext, configArray: any[], greenidePackage : string){
-	
+function registerNewMethodHover(context: vscode.ExtensionContext, configArray: any[], defaultConfigArray: any[], greenidePackage : string){
+
 	//Abfrage zum Server
-	axios.post("http://server-backend-swtp-13.herokuapp.com/getMethodParameters", {config: configArray, greenidePackage: greenidePackage, oldConfig: []}, {}).then(res => {
+	axios.post("http://server-backend-swtp-13.herokuapp.com/getMethodParameters", {config: configArray, greenidePackage: greenidePackage, oldConfig: defaultConfigArray}, {}).then(res => {
 		let definedFunctions: any = res.data.methods;
 		let hotspotRuntime: any = res.data.hotspotRuntime;
 		let hotspotEnergy: any = res.data.hotspotEnergy;
 		let greenspotRuntime: any = [].concat(hotspotRuntime).reverse();//Achtung die ersten Element werden immer -1 als runtime- und energyHotspot haben
 		let greenspotEnergy: any = [].concat(hotspotEnergy).reverse();  //same thing
-		console.log("Funktionen:", definedFunctions);
-		console.log("Runtime-Hotspots:", hotspotRuntime);
-		console.log("Energy-Hotspots:", hotspotEnergy);
-		console.log("Runtime-Greenspots:", greenspotRuntime);
-		console.log("Energy-Greenspots:", greenspotEnergy);
+		// console.log("Funktionen:", definedFunctions);
+		// console.log("Runtime-Hotspots:", hotspotRuntime);
+		// console.log("Energy-Hotspots:", hotspotEnergy);
+		// console.log("Runtime-Greenspots:", greenspotRuntime);
+		// console.log("Energy-Greenspots:", greenspotEnergy);
 
-		//Example Hotspot Array
-		let hotspotArray = [{name: "kanzi.Global.computeHistogramOrder0", runtimeHotspot: 0.9, energyHotspot: 1.1}, {name: "kanzi.Global.initSquash", runtimeHotspot: 0.6, energyHotspot: 0.3}];
 		//greenspotarray analog 
 
+		//Entferne vorherige HoverProvider
 		context.subscriptions.forEach((disposable: vscode.Disposable) => {
 			disposable.dispose();
 		});
+
+		highlightHotAndGreenspots(hotspotRuntime, hotspotEnergy, greenspotRuntime, greenspotEnergy, 10, "energy");
+
+		vscode.window.onDidChangeVisibleTextEditors(event => {
+			highlightHotAndGreenspots(hotspotRuntime, hotspotEnergy, greenspotRuntime, greenspotEnergy, 10, "energy");
+		}, null, context.subscriptions);
 
 		let disposable = vscode.languages.registerHoverProvider({language: 'java', scheme: 'file'},{
 			provideHover(document, position, token) {
@@ -120,110 +167,24 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 
 
 				const wordRange = document.getWordRangeAtPosition(position, /\w[\w]*/g);
-				let suffixText = "";
-				let prefixText = "";
-				
-				if(wordRange){
-					prefixText = document.getText(new vscode.Range(new vscode.Position(0,0), wordRange.start));
-					suffixText = document.getText(new vscode.Range(wordRange.end, new vscode.Position(document.lineCount - 1, Math.max(document.lineAt(document.lineCount - 1).text.length - 1, 0))));
-				}
-				//Das Wort über welches gerade gehovered wird
-				const word = document.getText(wordRange);
 
-				//Speichere am Ende die Subclass, die am nächsten dran ist 
-				let highestSubClassIndex = -1;
-
-				//Gehe durch alle Methodennamen
-				definedFunctions.forEach((definedFunction: any) => {
-						let functionDef = definedFunction.name;
-						let isFunctionParameterCountSet = false;
-						let functionParameterCount = 0;
-
-						//Anzahl der Parameter erhalten und Klammern entfernen
-						if(definedFunction.name.indexOf('(') > -1){
-							isFunctionParameterCountSet = true;
-							let functionDefParts = definedFunction.name.split('(');
-							functionDef = functionDefParts[0];
-							functionParameterCount = (functionDefParts[1].match(/,/g) || []).length;
+				queryFunctionNames(document, definedFunctions, wordRange, (definedFunction: any) => {
+					hoverTriggered = true;
+					hoverText = "Function: " + definedFunction.name + "\nRuntime: " + definedFunction.runtime + " ms\nEnergy: " + definedFunction.energy + " mWs";
+					let isInArray = false;
+					for(const hotspot of hotspotRuntime){
+						if(hotspot.name === definedFunction.name){
+							hoverText += "\nRuntimeChange: " + (definedFunction.runtime - (definedFunction.runtime / hotspot.runtimeSpot)) + " ms"
+							hoverText += "\nEnergyChange: " + (definedFunction.energy - (definedFunction.energy / hotspot.energySpot)) + " mWs"
+							isInArray = true;
 						}
+					}
 
-						//In Pfad aufspalten und Namen erhalten
-						let functionComponents = functionDef.split('.');
-						let functionName = functionComponents[functionComponents.length - 1];
-
-						
-						let documentPath = document.uri.toString().replace(".java","").split('/');
-
-						
-						let isSubClass = false;
-						let subClassName = "";
-						let isInSubclass = false;
-						let subClassIndex = -1;
-						//Sonderfall Subclass
-						if(functionComponents[functionComponents.length - 2].indexOf('$') > -1){
-							let tempSubClassParts = functionComponents[functionComponents.length - 2].split('$');
-							isSubClass = true;
-							functionComponents[functionComponents.length - 2] = tempSubClassParts[0];
-							subClassName = tempSubClassParts[1];
-
-							subClassIndex = prefixText.search(new RegExp("(static[\\s]*class[\\s]*" + subClassName + ")", "g"));
-
-							if(subClassIndex > -1){
-								let subClassPrefixBody = prefixText.slice(subClassIndex);
-					
-								//Zähle die geschweiften Klammern und schaue ob sie ungerade sind => Man befindet sich in Subclass
-								if((subClassPrefixBody.match(/[\{\}]/g) || []).length % 2 !== 0){
-									isInSubclass = true;
-								}
-							}
-						}
-
-
-						//Sonderfall Konstruktor
-						if(functionName === "<init>" || functionName === "<clinit>"){
-							documentPath.pop();
-							functionComponents.pop();
-							if(isInSubclass){
-								functionName = subClassName;
-							}else{
-								functionName = functionComponents[functionComponents.length - 1];
-							}
-						}
-
-
-						
-						//Checke ob mit Leerzeichen beginnt und Klammern folgen
-						if(suffixText.match(/^\(.*\)/) && prefixText.match(/\s$/)){
-
-							//Teste ob entgültiger Funktionsname mit Wort übereinstimmt
-							if (functionName === word) {
-								let pathMatches = true;
-
-								//Teste ob Pfad übereinstimmt
-								for(let i = 1; i < functionComponents.length; i++){
-									if(functionComponents[functionComponents.length - 1 - i] !== documentPath[documentPath.length - i]){
-										pathMatches = false;
-										break;
-									}
-								}
-
-								if(pathMatches){
-									//Anzahl der Parameter der Hoverfunktion erhalten
-									let suffixParts = suffixText.split(')');
-									let suffixParameterCount = (suffixParts[0].match(/,/g) || []).length;
-									
-									//Teste ob Parameteranzahl mitgegeben ist und wenn ja, ob sie passt
-									if(!isFunctionParameterCountSet || suffixParameterCount === functionParameterCount){
-										//Sonderbehandlung für Subclasses
-										if((!isSubClass || isInSubclass) && subClassIndex >= highestSubClassIndex){
-											highestSubClassIndex = subClassIndex;
-											hoverTriggered = true;
-											hoverText = "Function: " + definedFunction.name + "\nRuntime: " + definedFunction.runtime + " ms\nEnergy: " + definedFunction.energy + " mWs";	
-										}
-									}
-								}
-							}
-						}
+					if(!isInArray){
+						//Negativer Hotspot
+						hoverText += "\nRuntimeChange: NaN"
+						hoverText += "\nEnergyChange: NaN"
+					}
 				});
 
 				if(hoverTriggered){
@@ -234,10 +195,176 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 				}
 			}
 		});
-	
-	
+
+
 		context.subscriptions.push(disposable);
 	}).catch((error) => {
 		console.log(error.response);
+	});
+}
+
+
+function highlightHotAndGreenspots(hotspotRuntime: any, hotspotEnergy: any, greenspotRuntime: any, greenspotEnergy: any, count: number, type: String = "runtime"){
+	const activeEditor = vscode.window.activeTextEditor;
+	if(!activeEditor)
+		{return;}
+	
+
+	if(type === "runtime"){
+		const hotspots: vscode.DecorationOptions[] | undefined = highlightSpots(hotspotRuntime, count);
+		if(hotspots !== undefined){
+			activeEditor.setDecorations(hotspotsDecoration, hotspots);
+		}
+		const greenspots: vscode.DecorationOptions[] | undefined = highlightSpots(greenspotRuntime, count);
+		if(greenspots !== undefined){
+			activeEditor.setDecorations(greenspotDecoration, greenspots);
+		}
+	}else if(type === "energy"){
+		const hotspots: vscode.DecorationOptions[] | undefined = highlightSpots(hotspotEnergy, count);
+		if(hotspots !== undefined){
+			activeEditor.setDecorations(hotspotsDecoration, hotspots);
+		}
+		const greenspots: vscode.DecorationOptions[] | undefined = highlightSpots(greenspotEnergy, count);
+		if(greenspots !== undefined){
+			activeEditor.setDecorations(greenspotDecoration, greenspots);
+		}
+	}
+}
+
+
+function highlightSpots(funktionsnamen: any, count: number)
+{
+	const activeEditor = vscode.window.activeTextEditor;
+	if(!activeEditor)
+		{return;}
+
+	const regex = /\w+/g;
+	const text = activeEditor.document.getText();
+	const hotspots: vscode.DecorationOptions[] = [];
+
+	let match: any;
+	while ((match = regex.exec(text))) {
+
+		const startPos = activeEditor.document.positionAt(match.index);
+		const endPos = activeEditor.document.positionAt(match.index + match[0].length);
+		let decoration = { range: new vscode.Range(startPos, endPos) };
+
+		const wordRange = activeEditor.document.getWordRangeAtPosition(startPos, /\w+/g);
+
+		queryFunctionNames(activeEditor.document, funktionsnamen.slice(0,count), wordRange, (definedFunction: any) => {
+			hotspots.push(decoration);
+		});
+
+	}
+
+	return hotspots
+}
+
+
+
+function queryFunctionNames(document: vscode.TextDocument, definedFunctions: any, wordRange: vscode.Range | undefined, callback: Function){
+	let suffixText = "";
+	let prefixText = "";
+
+	if(wordRange){
+		prefixText = document.getText(new vscode.Range(new vscode.Position(0,0), wordRange.start));
+		suffixText = document.getText(new vscode.Range(wordRange.end, new vscode.Position(document.lineCount - 1, Math.max(document.lineAt(document.lineCount - 1).text.length - 1, 0))));
+	}
+	//Das Wort über welches gerade gehovered wird
+	const word = document.getText(wordRange);
+
+	//Speichere am Ende die Subclass, die am nächsten dran ist
+	let highestSubClassIndex = -1;
+
+	//Gehe durch alle Methodennamen
+	definedFunctions.forEach((definedFunction: any) => {
+			let functionDef = definedFunction.name;
+			let isFunctionParameterCountSet = false;
+			let functionParameterCount = 0;
+
+			//Anzahl der Parameter erhalten und Klammern entfernen
+			if(definedFunction.name.indexOf('(') > -1){
+				isFunctionParameterCountSet = true;
+				let functionDefParts = definedFunction.name.split('(');
+				functionDef = functionDefParts[0];
+				functionParameterCount = (functionDefParts[1].match(/,/g) || []).length;
+			}
+
+			//In Pfad aufspalten und Namen erhalten
+			let functionComponents = functionDef.split('.');
+			let functionName = functionComponents[functionComponents.length - 1];
+
+
+			let documentPath = document.uri.toString().replace(".java","").split('/');
+
+
+			let isSubClass = false;
+			let subClassName = "";
+			let isInSubclass = false;
+			let subClassIndex = -1;
+			//Sonderfall Subclass
+			if(functionComponents[functionComponents.length - 2].indexOf('$') > -1){
+				let tempSubClassParts = functionComponents[functionComponents.length - 2].split('$');
+				isSubClass = true;
+				functionComponents[functionComponents.length - 2] = tempSubClassParts[0];
+				subClassName = tempSubClassParts[1];
+
+				subClassIndex = prefixText.search(new RegExp("(static[\\s]*class[\\s]*" + subClassName + ")", "g"));
+
+				if(subClassIndex > -1){
+					let subClassPrefixBody = prefixText.slice(subClassIndex);
+
+					//Zähle die geschweiften Klammern und schaue ob sie ungerade sind => Man befindet sich in Subclass
+					if((subClassPrefixBody.match(/[\{\}]/g) || []).length % 2 !== 0){
+						isInSubclass = true;
+					}
+				}
+			}
+
+
+			//Sonderfall Konstruktor
+			if(functionName === "<init>" || functionName === "<clinit>"){
+				documentPath.pop();
+				functionComponents.pop();
+				if(isInSubclass){
+					functionName = subClassName;
+				}else{
+					functionName = functionComponents[functionComponents.length - 1];
+				}
+			}
+
+
+
+			//Checke ob mit Leerzeichen beginnt und Klammern folgen
+			if(suffixText.match(/^\(.*\)/) && prefixText.match(/\s$/)){
+
+				//Teste ob entgültiger Funktionsname mit Wort übereinstimmt
+				if (functionName === word) {
+					let pathMatches = true;
+
+					//Teste ob Pfad übereinstimmt
+					for(let i = 1; i < functionComponents.length; i++){
+						if(functionComponents[functionComponents.length - 1 - i] !== documentPath[documentPath.length - i]){
+							pathMatches = false;
+							break;
+						}
+					}
+
+					if(pathMatches){
+						//Anzahl der Parameter der Hoverfunktion erhalten
+						let suffixParts = suffixText.split(')');
+						let suffixParameterCount = (suffixParts[0].match(/,/g) || []).length;
+
+						//Teste ob Parameteranzahl mitgegeben ist und wenn ja, ob sie passt
+						if(!isFunctionParameterCountSet || suffixParameterCount === functionParameterCount){
+							//Sonderbehandlung für Subclasses
+							if((!isSubClass || isInSubclass) && subClassIndex >= highestSubClassIndex){
+								highestSubClassIndex = subClassIndex;
+								callback(definedFunction);
+							}
+						}
+					}
+				}
+			}
 	});
 }
