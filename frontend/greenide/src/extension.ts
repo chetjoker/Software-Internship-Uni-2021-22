@@ -139,11 +139,11 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 		let hotspotEnergy: any = res.data.hotspotEnergy;
 		let greenspotRuntime: any = [].concat(hotspotRuntime).reverse();//Achtung die ersten Element werden immer -1 als runtime- und energyHotspot haben
 		let greenspotEnergy: any = [].concat(hotspotEnergy).reverse();  //same thing
-		console.log("Funktionen:", definedFunctions);
-		console.log("Runtime-Hotspots:", hotspotRuntime);
-		console.log("Energy-Hotspots:", hotspotEnergy);
-		console.log("Runtime-Greenspots:", greenspotRuntime);
-		console.log("Energy-Greenspots:", greenspotEnergy);
+		// console.log("Funktionen:", definedFunctions);
+		// console.log("Runtime-Hotspots:", hotspotRuntime);
+		// console.log("Energy-Hotspots:", hotspotEnergy);
+		// console.log("Runtime-Greenspots:", greenspotRuntime);
+		// console.log("Energy-Greenspots:", greenspotEnergy);
 
 		//greenspotarray analog 
 
@@ -152,11 +152,10 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 			disposable.dispose();
 		});
 
-		highlightHotAndGreenspots(hotspotRuntime, hotspotEnergy, greenspotRuntime, greenspotEnergy, 10);
+		highlightHotAndGreenspots(hotspotRuntime, hotspotEnergy, greenspotRuntime, greenspotEnergy, 10, "energy");
 
 		vscode.window.onDidChangeVisibleTextEditors(event => {
-			console.log("onDidChangeVisibleTextEditors");
-			highlightHotAndGreenspots(hotspotRuntime, hotspotEnergy, greenspotRuntime, greenspotEnergy, 10);
+			highlightHotAndGreenspots(hotspotRuntime, hotspotEnergy, greenspotRuntime, greenspotEnergy, 10, "energy");
 		}, null, context.subscriptions);
 
 		let disposable = vscode.languages.registerHoverProvider({language: 'java', scheme: 'file'},{
@@ -172,6 +171,20 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 				queryFunctionNames(document, definedFunctions, wordRange, (definedFunction: any) => {
 					hoverTriggered = true;
 					hoverText = "Function: " + definedFunction.name + "\nRuntime: " + definedFunction.runtime + " ms\nEnergy: " + definedFunction.energy + " mWs";
+					let isInArray = false;
+					for(const hotspot of hotspotRuntime){
+						if(hotspot.name === definedFunction.name){
+							hoverText += "\nRuntimeChange: " + (definedFunction.runtime - (definedFunction.runtime / hotspot.runtimeSpot)) + " ms"
+							hoverText += "\nEnergyChange: " + (definedFunction.energy - (definedFunction.energy / hotspot.energySpot)) + " mWs"
+							isInArray = true;
+						}
+					}
+
+					if(!isInArray){
+						//Negativer Hotspot
+						hoverText += "\nRuntimeChange: NaN"
+						hoverText += "\nEnergyChange: NaN"
+					}
 				});
 
 				if(hoverTriggered){
@@ -240,7 +253,6 @@ function highlightSpots(funktionsnamen: any, count: number)
 
 		queryFunctionNames(activeEditor.document, funktionsnamen.slice(0,count), wordRange, (definedFunction: any) => {
 			hotspots.push(decoration);
-			console.log(definedFunction.name)
 		});
 
 	}
