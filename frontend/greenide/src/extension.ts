@@ -14,19 +14,28 @@ let folderPath = vscode.workspace.workspaceFolders?.map(folder => folder.uri.fsP
 
 const configName = "greenide.config";
 
-let colorLight = '#d65c5e';
-let colorDark = '#a82a2d';
-
 // decortor type for hotspots
 const hotspotsDecoration = vscode.window.createTextEditorDecorationType({
 	overviewRulerLane: vscode.OverviewRulerLane.Full,
 	light: {
-		backgroundColor: colorLight,
-		overviewRulerColor: colorLight,
+		backgroundColor: '#d65c5e',
+		overviewRulerColor: '#d65c5e',
 	},
 	dark: {
-		backgroundColor: colorDark,
-		overviewRulerColor: colorDark,
+		backgroundColor: '#a82a2d',
+		overviewRulerColor: '#a82a2d',
+	}
+});
+
+const greenspotDecoration = vscode.window.createTextEditorDecorationType({
+	overviewRulerLane: vscode.OverviewRulerLane.Full,
+	light: {
+		backgroundColor: '#51d655',
+		overviewRulerColor: '#51d655',
+	},
+	dark: {
+		backgroundColor: '#07ad0c',
+		overviewRulerColor: '#07ad0c',
 	}
 });
 
@@ -120,8 +129,6 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 		console.log("Runtime-Greenspots:", greenspotRuntime);
 		console.log("Energy-Greenspots:", greenspotEnergy);
 
-		//Example Hotspot Array
-		let hotspotArray = [{name: "kanzi.Global.computeHistogramOrder0", runtimeHotspot: 0.9, energyHotspot: 1.1}, {name: "kanzi.Global.initSquash", runtimeHotspot: 0.6, energyHotspot: 0.3}];
 		//greenspotarray analog 
 
 		//Entferne vorherige HoverProvider
@@ -129,14 +136,11 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 			disposable.dispose();
 		});
 
-
-		//Example Hotspot Array
-		let hotspotArray = [{name: "kanzi.Global.computeHistogramOrder0"}, {name: "kanzi.Global.initSquash"}, {name: "kanzi.entropy.ANSRangeEncoder.encodeChunk"}];
-		highlightHotspots(hotspotArray);
+		highlightHotAndGreenspots(hotspotRuntime, hotspotEnergy, greenspotRuntime, greenspotEnergy, 30);
 
 		vscode.window.onDidChangeVisibleTextEditors(event => {
 			console.log("onDidChangeVisibleTextEditors");
-			highlightHotspots(hotspotArray);
+			highlightHotAndGreenspots(hotspotRuntime, hotspotEnergy, greenspotRuntime, greenspotEnergy, 30);
 		}, null, context.subscriptions);
 
 		let disposable = vscode.languages.registerHoverProvider({language: 'java', scheme: 'file'},{
@@ -170,7 +174,36 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 	});
 }
 
-function highlightHotspots(funktionsnamen: any)
+
+function highlightHotAndGreenspots(hotspotRuntime: any, hotspotEnergy: any, greenspotRuntime: any, greenspotEnergy: any, count: number, type: String = "runtime"){
+	const activeEditor = vscode.window.activeTextEditor;
+	if(!activeEditor)
+		{return;}
+	
+
+	if(type === "runtime"){
+		const hotspots: vscode.DecorationOptions[] | undefined = highlightSpots(hotspotRuntime, count);
+		if(hotspots !== undefined){
+			activeEditor.setDecorations(hotspotsDecoration, hotspots);
+		}
+		const greenspots: vscode.DecorationOptions[] | undefined = highlightSpots(greenspotRuntime, count);
+		if(greenspots !== undefined){
+			activeEditor.setDecorations(greenspotDecoration, greenspots);
+		}
+	}else if(type === "energy"){
+		const hotspots: vscode.DecorationOptions[] | undefined = highlightSpots(hotspotEnergy, count);
+		if(hotspots !== undefined){
+			activeEditor.setDecorations(hotspotsDecoration, hotspots);
+		}
+		const greenspots: vscode.DecorationOptions[] | undefined = highlightSpots(greenspotEnergy, count);
+		if(greenspots !== undefined){
+			activeEditor.setDecorations(greenspotDecoration, greenspots);
+		}
+	}
+}
+
+
+function highlightSpots(funktionsnamen: any, count: number)
 {
 	const activeEditor = vscode.window.activeTextEditor;
 	if(!activeEditor)
@@ -189,12 +222,14 @@ function highlightHotspots(funktionsnamen: any)
 
 		const wordRange = activeEditor.document.getWordRangeAtPosition(startPos, /\w+/g);
 
-		queryFunctionNames(activeEditor.document, funktionsnamen, wordRange, (definedFunction: any) => {
-		hotspots.push(decoration);
+		queryFunctionNames(activeEditor.document, funktionsnamen.slice(0,count), wordRange, (definedFunction: any) => {
+			hotspots.push(decoration);
+			console.log(definedFunction.name)
 		});
 
 	}
-	activeEditor.setDecorations(hotspotsDecoration, hotspots);
+
+	return hotspots
 }
 
 
