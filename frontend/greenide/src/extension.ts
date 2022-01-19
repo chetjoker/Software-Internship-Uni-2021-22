@@ -170,12 +170,15 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 
 				queryFunctionNames(document, definedFunctions, wordRange, (definedFunction: any) => {
 					hoverTriggered = true;
-					hoverText = "Function: " + definedFunction.name + "\nRuntime: " + definedFunction.runtime + " ms\nEnergy: " + definedFunction.energy + " mWs";
+					hoverText = "Function: " + definedFunction.name + "\nRuntime: " + definedFunction.runtime.toFixed(2) + " ms\nEnergy: " + definedFunction.energy.toFixed(2) + " mWs";
 					let isInArray = false;
 					for(const hotspot of hotspotRuntime){
 						if(hotspot.name === definedFunction.name){
-							hoverText += "\nRuntimeChange: " + (definedFunction.runtime - (definedFunction.runtime / hotspot.runtimeSpot)) + " ms"
-							hoverText += "\nEnergyChange: " + (definedFunction.energy - (definedFunction.energy / hotspot.energySpot)) + " mWs"
+							const runtimeChange = (definedFunction.runtime - (definedFunction.runtime / hotspot.runtimeSpot))
+							const energyChange = (definedFunction.energy - (definedFunction.energy / hotspot.energySpot))
+
+							hoverText += "\nRuntimeChange: " + (runtimeChange > 0 ? '+' : '') + runtimeChange.toFixed(2) + " ms"
+							hoverText += "\nEnergyChange: " + (runtimeChange > 0 ? '+' : '') + energyChange.toFixed(2) + " mWs"
 							isInArray = true;
 						}
 					}
