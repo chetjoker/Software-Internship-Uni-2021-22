@@ -339,7 +339,7 @@ function queryFunctionNames(document: vscode.TextDocument, definedFunctions: any
 
 
 			//Checke ob mit Leerzeichen beginnt und Klammern folgen
-			if(suffixText.match(/^\(.*\)/) && prefixText.match(/\s$/)){
+			if(suffixText.match(/^\(.*\)\s*{/) && prefixText.match(/\s$/)){
 
 				//Teste ob entgültiger Funktionsname mit Wort übereinstimmt
 				if (functionName === word) {
