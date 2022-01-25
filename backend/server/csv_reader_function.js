@@ -103,9 +103,7 @@ function compareNewOld(methods, oldConfigMethods){//.runtime, .energy | vergleic
       if(methods[i].name===oldConfigMethods[i].name){//falls es sich nicht gleicht, fehler im array 
         let runtimeSpot = compareMethodparameters(methods[i].runtime, oldConfigMethods[i].runtime);
         let energySpot = compareMethodparameters(methods[i].energy, oldConfigMethods[i].energy);
-        if((runtimeSpot!==-1) && (energySpot!==-1)){//nur element hinzufügen falls keiner der beiden Werte 0 ist, da die Werte sonst fehlerhaft sind
-          spotArray.push({name: methods[i].name, runtimeSpot: runtimeSpot, energySpot: energySpot, oldRuntime: oldConfigMethods.runtime, oldEnergy: oldConfigMethods.energy}); //{name, runtimeSpot?: (new/old), energySpot: (new/old)}
-        }          
+        spotArray.push({name: methods[i].name, runtimeSpot: runtimeSpot, energySpot: energySpot, oldRuntime: oldConfigMethods[i].runtime, oldEnergy: oldConfigMethods[i].energy});             
       }
   }
   return spotArray;
@@ -113,8 +111,9 @@ function compareNewOld(methods, oldConfigMethods){//.runtime, .energy | vergleic
 exports.compareNewOld = compareNewOld;//exports function
 
 function compareMethodparameters(wertNeu, wertAlt){
-  if(wertNeu>=0 && wertAlt>0){//wenn vorher negative oder danach, kann keine aussage getroffen werden
-      return ((parseFloat(wertNeu)/parseFloat(wertAlt))); //rechnet prozent zunahme/abnhame aus
+  if(wertAlt!==0){//wenn vorher negative oder danach, kann keine aussage getroffen werden
+      return ((wertNeu-wertAlt)/Math.abs(wertAlt)); //rechnet prozent zunahme/abnhame aus
+  } else {
+    return 0;
   }
-  return parseFloat(-1);//fehlercode(falls negative Werte)
 }

@@ -23,7 +23,7 @@ app.post('/getMethodParameters', async (req, res) => {
 
     if( req.body.oldConfig.length>0 && !arrayEquals(req.body.oldConfig, req.body.config) ){
       let oldConfigMethods = await import_csv_reader.readAndCalcParameters(req.body.oldConfig, csv_data); //alte config wird berechnet
-      let comparisonArray = await import_csv_reader.compareNewOld(methods ,oldConfigMethods); //Aufbau: Array={Element1,...}; Element1={name: string, runtimeHotspot: (new/old), energyHotspot: (new/old)}
+      let comparisonArray = await import_csv_reader.compareNewOld(methods ,oldConfigMethods); //Aufbau: Array={Element1,...}; Element1={name: methods[i].name, runtimeSpot: runtimeSpot, energySpot: energySpot, oldRuntime: oldConfigMethods[i].runtime, oldEnergy: oldConfigMethods[i].energy}
       hotspotRuntime = [].concat(sortArray(comparisonArray,  //array ist wie comparisonarray aufgebaut nur nach hotspots geordnet
                                            {by: 'compare', 
                                             order: 'desc', //descending order
