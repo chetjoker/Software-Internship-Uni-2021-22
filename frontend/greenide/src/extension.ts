@@ -137,13 +137,13 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 		let definedFunctions: any = res.data.methods;
 		let hotspotRuntime: any = res.data.hotspotRuntime;
 		let hotspotEnergy: any = res.data.hotspotEnergy;
-		let greenspotRuntime: any = [].concat(hotspotRuntime).reverse();//Achtung die ersten Element werden immer -1 als runtime- und energyHotspot haben
+		let greenspotRuntime: any = [].concat(hotspotRuntime).reverse();//Achtung die ersten Elemente werden immer -1 als runtime- und energyHotspot haben
 		let greenspotEnergy: any = [].concat(hotspotEnergy).reverse();  //same thing
 		// console.log("Funktionen:", definedFunctions);
 		// console.log("Runtime-Hotspots:", hotspotRuntime);
 		// console.log("Energy-Hotspots:", hotspotEnergy);
-		// console.log("Runtime-Greenspots:", greenspotRuntime);
-		// console.log("Energy-Greenspots:", greenspotEnergy);
+		 console.log("Runtime-Greenspots:", greenspotRuntime);
+		 console.log("Energy-Greenspots:", greenspotEnergy);
 
 		//greenspotarray analog 
 
@@ -152,10 +152,10 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 			disposable.dispose();
 		});
 
-		highlightHotAndGreenspots(hotspotRuntime, hotspotEnergy, greenspotRuntime, greenspotEnergy, 10, "energy");
+		highlightHotAndGreenspots(hotspotRuntime, hotspotEnergy, greenspotRuntime, greenspotEnergy, 120, "energy");
 
 		vscode.window.onDidChangeVisibleTextEditors(event => {
-			highlightHotAndGreenspots(hotspotRuntime, hotspotEnergy, greenspotRuntime, greenspotEnergy, 10, "energy");
+			highlightHotAndGreenspots(hotspotRuntime, hotspotEnergy, greenspotRuntime, greenspotEnergy, 120, "energy");
 		}, null, context.subscriptions);
 
 		let disposable = vscode.languages.registerHoverProvider({language: 'java', scheme: 'file'},{
@@ -174,8 +174,8 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 					let isInArray = false;
 					for(const hotspot of hotspotRuntime){
 						if(hotspot.name === definedFunction.name){
-							const runtimeChange = (definedFunction.runtime - (definedFunction.runtime / hotspot.runtimeSpot));
-							const energyChange = (definedFunction.energy - (definedFunction.energy / hotspot.energySpot));
+							const runtimeChange = (definedFunction.runtime - hotspot.oldRuntime);
+							const energyChange = (definedFunction.energy - hotspot.oldEnergy);
 
 							hoverText += "\nRuntimeChange: " + (runtimeChange > 0 ? '+' : '') + runtimeChange.toFixed(2) + " ms";
 							hoverText += "\nEnergyChange: " + (runtimeChange > 0 ? '+' : '') + energyChange.toFixed(2) + " mWs";
