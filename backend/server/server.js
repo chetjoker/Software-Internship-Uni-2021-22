@@ -19,7 +19,7 @@ app.post('/getMethodParameters', async (req, res) => {
     let hotspotEnergy = [];
 
     let csv_data = await import_csv_reader.readCSV("./" + req.body.greenidePackage + ".csv");
-    let methods = await import_csv_reader.readAndCalcParameters(req.body.config, csv_data); //neue config
+    let methods = await import_csv_reader.readAndCalcParameters(req.body.config, csv_data); //Elemente haben die Form: {name: currentMethodName, runtime: currentRuntime, energy: currentEnergy}
 
     if( req.body.oldConfig.length>0 && !arrayEquals(req.body.oldConfig, req.body.config) ){
       let oldConfigMethods = await import_csv_reader.readAndCalcParameters(req.body.oldConfig, csv_data); //alte config wird berechnet

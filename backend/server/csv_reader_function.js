@@ -104,7 +104,7 @@ function compareNewOld(methods, oldConfigMethods){//.runtime, .energy | vergleic
         let runtimeSpot = compareMethodparameters(methods[i].runtime, oldConfigMethods[i].runtime);
         let energySpot = compareMethodparameters(methods[i].energy, oldConfigMethods[i].energy);
         if((runtimeSpot!==-1) && (energySpot!==-1)){//nur element hinzufügen falls keiner der beiden Werte 0 ist, da die Werte sonst fehlerhaft sind
-          spotArray.push({name: methods[i].name, runtimeSpot: runtimeSpot, energySpot: energySpot}); //{name, runtimeSpot?: (new/old), energySpot: (new/old)}
+          spotArray.push({name: methods[i].name, runtimeSpot: runtimeSpot, energySpot: energySpot, oldRuntime: oldConfigMethods.runtime, oldEnergy: oldConfigMethods.energy}); //{name, runtimeSpot?: (new/old), energySpot: (new/old)}
         }          
       }
   }

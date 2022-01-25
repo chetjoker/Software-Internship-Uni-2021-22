@@ -174,8 +174,8 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 					let isInArray = false;
 					for(const hotspot of hotspotRuntime){
 						if(hotspot.name === definedFunction.name){
-							const runtimeChange = (definedFunction.runtime - (definedFunction.runtime / hotspot.runtimeSpot));
-							const energyChange = (definedFunction.energy - (definedFunction.energy / hotspot.energySpot));
+							const runtimeChange = (definedFunction.runtime - hotspot.oldRuntime);
+							const energyChange = (definedFunction.energy - hotspot.oldEnergy);
 
 							hoverText += "\nRuntimeChange: " + (runtimeChange > 0 ? '+' : '') + runtimeChange.toFixed(2) + " ms";
 							hoverText += "\nEnergyChange: " + (runtimeChange > 0 ? '+' : '') + energyChange.toFixed(2) + " mWs";
