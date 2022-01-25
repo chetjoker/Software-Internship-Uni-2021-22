@@ -152,10 +152,10 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 			disposable.dispose();
 		});
 
-		highlightHotAndGreenspots(hotspotRuntime, hotspotEnergy, greenspotRuntime, greenspotEnergy, 120, "energy");
+		highlightHotAndGreenspots(hotspotRuntime, hotspotEnergy, greenspotRuntime, greenspotEnergy, 10, "energy");
 
 		vscode.window.onDidChangeVisibleTextEditors(event => {
-			highlightHotAndGreenspots(hotspotRuntime, hotspotEnergy, greenspotRuntime, greenspotEnergy, 120, "energy");
+			highlightHotAndGreenspots(hotspotRuntime, hotspotEnergy, greenspotRuntime, greenspotEnergy, 10, "energy");
 		}, null, context.subscriptions);
 
 		let disposable = vscode.languages.registerHoverProvider({language: 'java', scheme: 'file'},{
