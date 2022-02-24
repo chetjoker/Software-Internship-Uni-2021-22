@@ -2,6 +2,7 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import axios from 'axios';
+import {getWebviewContent as conf} from './config';
 
 // is required to read and wirte files with Node.js
 import * as fs from 'fs';
@@ -53,8 +54,78 @@ export function activate(context: vscode.ExtensionContext) {
 		initializeGreenide(context, greenidePackage);
 	});
 
+	vscode.commands.registerCommand('greenide.conf', () => {		
+		const panel = vscode.window.createWebviewPanel(
+			'GreenIde',
+			'Settings',
+			vscode.ViewColumn.One,
+			{
+				enableScripts: true
+			}
+		);
+		
+		panel.webview.html = `
+		<!DOCTYPE html>
+		<html lang="en">
+		<head>
+		  <meta charset="utf-8">
+		  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+		
+		  <title>Hello World</title>
+		</head>
+		<body>
+		<p>Choose your Settings:</p>
+		
+		<div>
+		  <input type="checkbox" id="Nummer1" name="1"
+				 checked>
+		  <label for="1">Checkbox1</label>
+		</div>
+		
+		<div>
+		  <input type="checkbox" id="Nummer2" name="2">
+		  <label for="2">Checkbox2</label>
+		</div>
+		
+		<button id="go">Say hello</button>
+		
+		<div id="result"></div>
+		
+		<script type="text/javascript">
+		
+		"use strict";
+		
+		function greet() {
+			document.getElementById('result').innerHTML = 'Hello World';
+			 
+		 var filename = "readme.txt";
+		var text = "Text of the file goes here.";
+		var blob = new Blob([text], {type:'text/plain'});
+		var link = document.createElement("a");
+		link.download = filename;
+		link.innerHTML = "Download File";
+		link.href = window.URL.createObjectURL(blob);
+		document.body.appendChild(link);
+		
+			return false;
+			
+		}
+		
+		document.getElementById('go').addEventListener('click', greet);
+		
+		</script>
+		
+		</body>
+		</html>`;
+	/*	panel.onDidDispose(() => {},
+		null,
+		context.subscriptions);
+	*/
+	});
+
 	context.subscriptions.push(disposable);
 }
+
 
 // this method is called when your extension is deactivated
 export function deactivate() {}
