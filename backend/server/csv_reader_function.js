@@ -1,4 +1,3 @@
-const { rejects } = require('assert');
 const fs = require('fs')
 
 function readConfigParameters(filePath){
