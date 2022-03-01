@@ -12,7 +12,11 @@
     "sort-array": "^4.1.4"
   },
   "devDependencies": {
-    "jest": "^27.5.1"
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
+    "jest": "^27.5.1",
+    "superagent": "^7.1.1",
+    "supertest": "^6.2.2"
   },
   "scripts": {
     "test": "jest --collectCoverage"
