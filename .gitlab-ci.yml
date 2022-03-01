@@ -28,6 +28,15 @@ test_frontend:
     - /usr/bin/Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
     - npm run test
 
+test_backend:
+  stage: test
+  image: node:12-slim
+  script:
+    - cd backend/server
+    - apt-get update
+    - npm i
+    - npm run test
+
 package_extension:
   stage: deploy
   image: node:latest

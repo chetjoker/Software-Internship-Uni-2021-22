@@ -1,3 +1,4 @@
+const { rejects } = require('assert');
 const fs = require('fs')
 
 function readConfigParameters(filePath){
@@ -25,11 +26,10 @@ function readConfigParameters(filePath){
 exports.readConfigParameters = readConfigParameters;//exports function
 
 function readCSV(filePath){
-  return new Promise(resolve => {
+  return new Promise((resolve, reject) => {
     fs.readFile(filePath, 'utf8' , (err, data) => {
         if (err) {
-          console.error(err);
-          return;
+          reject("Something went wrong with reading the csv");
         }
         resolve(data);
     });
