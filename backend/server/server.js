@@ -13,8 +13,8 @@ app.use(express.urlencoded({
   extended: true
 }));
 
-app.post('/getMethodParameters', async (req, res) => {
-  if(req.body.config && req.body.greenidePackage && req.body.oldConfig){
+const getMethodParameters = async (req, res) => {
+  if(req.body && req.body.config && req.body.greenidePackage && req.body.oldConfig){
     let hotspotRuntime = [];
     let hotspotEnergy = [];
 
@@ -37,9 +37,12 @@ app.post('/getMethodParameters', async (req, res) => {
     }
     res.send({methods: methods, hotspotRuntime: hotspotRuntime, hotspotEnergy: hotspotEnergy});//sendet methodArray, hotspotruntime und -energy(für greenspots muss hotspot nur reversed werden)
   }else{
-    res.send("config not found");  
+    res.send("wrong parameters");  
   }
-})
+};
+exports.getMethodParameters = getMethodParameters;
+
+app.post('/getMethodParameters', getMethodParameters)
 
 app.post('/getParameters', async (req, res) => {
   if(req.body.greenidePackage){

@@ -2,10 +2,10 @@ const { rejects } = require('assert');
 const fs = require('fs')
 
 function readConfigParameters(filePath){
-  return new Promise(resolve => {
+  return new Promise((resolve, reject) => {
     fs.readFile(filePath, 'utf8' , (err, data) => {
       if (err) {
-        console.error(err);
+        reject("Something went wrong with reading the csv");
         return;
       }
 
@@ -30,6 +30,7 @@ function readCSV(filePath){
     fs.readFile(filePath, 'utf8' , (err, data) => {
         if (err) {
           reject("Something went wrong with reading the csv");
+          return;
         }
         resolve(data);
     });
@@ -84,6 +85,10 @@ exports.readAndCalcParameters = readAndCalcParameters;//exports function
 function configMatches(eingabeConfig, zeilenConfig){ //eingabeKonfig vom Frontend | zeilenkonfig sind alle konfigs für die fkt als der csv
   let configsMatch = true;
 
+  if(eingabeConfig.length !== zeilenConfig.length){
+    return false;
+  }
+
   for(let i = 0; i < zeilenConfig.length; i++){
     if(parseInt(eingabeConfig[i]) === 1 && parseInt(zeilenConfig[i]) === 1){ //wenn match bei nur einer 1 dann addiere 
       configsMatch = true;
@@ -96,23 +101,29 @@ function configMatches(eingabeConfig, zeilenConfig){ //eingabeKonfig vom Fronten
 
   return configsMatch;
 }
+exports.configMatches = configMatches;//exports function
 
 function compareNewOld(methods, oldConfigMethods){//.runtime, .energy | vergleicht alten runtimes/energyconsumptions mit neuen und rechnet prozentuale abnahme/zunahme aus
+  if(methods.length !== oldConfigMethods.length){
+    throw "Array lengths do not match";
+  }
+  
   let spotArray = [];
   for(i=0;i<methods.length;i++){
-      if(methods[i].name===oldConfigMethods[i].name){//falls es sich nicht gleicht, fehler im array 
-        let runtimeSpot = compareMethodparameters(methods[i].runtime, oldConfigMethods[i].runtime);
-        let energySpot = compareMethodparameters(methods[i].energy, oldConfigMethods[i].energy);
-        spotArray.push({name: methods[i].name, runtimeSpot: runtimeSpot, energySpot: energySpot, oldRuntime: oldConfigMethods[i].runtime, oldEnergy: oldConfigMethods[i].energy});             
+      if(methods[i].name!==oldConfigMethods[i].name){//falls es sich nicht gleicht, fehler im array 
+        throw "Method names do not match";
       }
+      let runtimeSpot = compareMethodparameters(methods[i].runtime, oldConfigMethods[i].runtime);
+      let energySpot = compareMethodparameters(methods[i].energy, oldConfigMethods[i].energy);
+      spotArray.push({name: methods[i].name, runtimeSpot: runtimeSpot, energySpot: energySpot, oldRuntime: oldConfigMethods[i].runtime, oldEnergy: oldConfigMethods[i].energy});             
   }
   return spotArray;
 }
 exports.compareNewOld = compareNewOld;//exports function
 
 function compareMethodparameters(wertNeu, wertAlt){
-  if(wertAlt!==0){//wenn vorher negative oder danach, kann keine aussage getroffen werden
-      return ((wertNeu-wertAlt)/Math.abs(wertAlt)); //rechnet prozent zunahme/abnhame aus
+  if(wertAlt!==0){//Do not divide by 0
+    return ((wertNeu-wertAlt)/Math.abs(wertAlt)); //rechnet prozent zunahme/abnhame aus
   } else {
     return 0;
   }
