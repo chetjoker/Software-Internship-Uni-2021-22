@@ -30,6 +30,23 @@ test('wrong parameters in getMethodParameters send error', function(done) {
     });
 });
 
+test('equal configs should return empty hotspot arrays', function(done) {
+    request(app)
+    .post('/getMethodParameters')
+    .send({
+        config: [1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], 
+        oldConfig: [1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], 
+        greenidePackage: 'kanzi'
+    })
+    .then(response => {
+        expect(response.statusCode).toBe(200);
+        expect(response._body.methods.length).toBe(256);
+        expect(response._body.hotspotRuntime.length).toBe(0);
+        expect(response._body.hotspotEnergy.length).toBe(0);
+        done();
+    });
+});
+
 // Tests for getParameters
 
 test('wrong parameters in getParameters send error', function(done) {
