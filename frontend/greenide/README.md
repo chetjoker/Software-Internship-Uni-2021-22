@@ -12,9 +12,17 @@ GreenIDE is extension developed to work with Visual Studio Code, in effort to he
 - You can change a program's configuration by editing the configuration file.
 - The colors of the messages you receive are adapted to your theme, whereas it is dark mode or normal mode.
 
-  
 ## Setting up and how to use
-- First, you would need to go to the folder `frontend/greenide`
+- To download the current extension, go to the pipelines and open up the package_extension job
+- Then click on download to download the job artifact
+- The downloaded ZIP-Folder contains the .vsix extension file
+- In Visual Studio  go to the "extension" window (menu on the left) and click on the three dots in the top right corner
+- Then you can click on "Install from VSIX" and select the downloaded .vsix file
+- Now the extension is installed and you can run your command from the command palette by pressing (`Ctrl+Shift+P` or `Cmd+Shift+P` on Mac) and typing `greenide.init`.
+- It's all set and done! You are good to go. Now just hover on a function of your choice to see the energy consumption level, execution time and if it is a hotspot code or not
+  
+## How to debug the extension
+- First, you would need to open up the folder `frontend/greenide` directly in Visual Studio Code (File -> Open Folder)
 - Then open the file `extension.ts` 
 - Press `F5` to open a new window with your extension loaded
 - Open your codes on this new window
