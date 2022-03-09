@@ -6,7 +6,6 @@ import axios from 'axios';
 
 // is required to read and wirte files with Node.js
 import * as fs from 'fs';
-import { reverse } from 'dns';
 
 const path = require('path');
 
@@ -15,6 +14,8 @@ let folderPath = vscode.workspace.workspaceFolders?.map(folder => folder.uri.fsP
 
 const configName = "greenide.config";
 const defaultConfigName = "greenide.default.config";
+
+let currentGreenidePackage = "";
 
 // decortor type for hotspots
 const hotspotsDecoration = vscode.window.createTextEditorDecorationType({
@@ -43,6 +44,8 @@ const greenspotDecoration = vscode.window.createTextEditorDecorationType({
 
 let configArrayCache : any[] = [];
 let defaultConfigArrayCache : any[] = [];
+
+let currentParameterKeys : any[] = [];
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -78,13 +81,35 @@ export function activate(context: vscode.ExtensionContext) {
 			message => {
 				switch (message.command) {
 					case 'configChange':
-					console.log(message.text);
-					return;
+						let configFileName = "";
+						switch(message.configType){
+							case "custom":
+								configFileName = configName;
+								break;
+							default:
+								configFileName = defaultConfigName;
+								break;
+						}
+						
+						//Ändert die ConfigDatei
+						updateConfig(configFileName, message.configData);
+						//Schickt Updates an Server
+						configsUpdated(configFileName, context);
+						break;
 				}
 			},
 			undefined,
 			context.subscriptions
 		);
+
+		if(currentParameterKeys.length > 0){
+			panel.webview.postMessage({ 
+				command: 'setParameters', 
+				parameterKeys: currentParameterKeys,
+				configData: readConfig(configName),
+				defaultConfigData: readConfig(defaultConfigName),
+			});
+		}
 	});
 	context.subscriptions.push(disposable);
 }
@@ -117,220 +142,11 @@ function getWebviewContent(cssSRC: string, jsSRC: string){
 	
 	
 	
-	<span id="d">
-	<div>
-	  <input type="checkbox" id="d1" name="1"   checked>
-	  <label for="d1">root</label>
+	<div id="parameters">
 	</div>
-	
-	<div>
-	  <input type="checkbox" id="d2" name="2">
-	  <label for="d2">AllPlatforms</label>
-	</div>
-	<div>
-	  <input type="checkbox" id="d3" name="3"   >
-	  <label for="d3">Android</label>
-	</div>
-	
-	<div>
-	  <input type="checkbox" id="d4" name="4">
-	  <label for="d4">Windows</label>
-	</div>
-	<div>
-	  <input type="checkbox" id="d5" name="5"   >
-	  <label for="d5">Web</label>
-	</div>
-	
-	<div>
-	  <input type="checkbox" id="d6" name="6">
-	  <label for="d6">IOS</label>
-	</div>
-	<div>
-	  <input type="checkbox" id="d7" name="7"   >
-	  <label for="d7">IncludeLdpiTvdpi</label>
-	</div>
-	
-	<div>
-	  <input type="checkbox" id="d8" name="8">
-	  <label for="d8">MipmapInODrawable</label>
-	</div>
-	<div>
-	  <input type="checkbox" id="d9" name="9"   >
-	  <label for="d9">AntiAliasing</label>
-	</div>
-	
-	<div>
-	  <input type="checkbox" id="d10" name="10">
-	  <label for="d10">CreateImagesetFolders</label>
-	</div>
-	<div>
-	  <input type="checkbox" id="d11" name="11"   >
-	  <label for="d11">Keep</label>
-	</div>
-	
-	<div>
-	  <input type="checkbox" id="d12" name="12">
-	  <label for="d12">PNG</label>
-	</div>
-	<div>
-	  <input type="checkbox" id="d13" name="13"   >
-	  <label for="d13">BMP</label>
-	</div>
-	
-	<div>
-	  <input type="checkbox" id="d14" name="14">
-	  <label for="d14">GIF</label>
-	</div>
-	<div>
-	  <input type="checkbox" id="d15" name="15"   >
-	  <label for="d15">JPG</label>
-	</div>
-	
-	<div>
-	  <input type="checkbox" id="d16" name="16">
-	  <label for="d16">round</label>
-	</div>
-	<div>
-	  <input type="checkbox" id="d17" name="17"   >
-	  <label for="d17">ceil</label>
-	</div>
-	
-	<div>
-	  <input type="checkbox" id="d18" name="18">
-	  <label for="d18">floor</label>
-	</div>
-	<div>
-	  <input type="checkbox" id="d19" name="19"   >
-	  <label for="d19">skipExisting</label>
-	</div>
-	
-	<div>
-	  <input type="checkbox" id="d20" name="20">
-	  <label for="d20">QualityComp</label>
-	</div>
-	<div>
-	  <input type="checkbox" id="d21" name="21"   >
-	  <label for="d21">Scale</label>
-	</div>
-	<div>
-	  <input type="checkbox" id="d22" name="22"   >
-	  <label for="d22">Threads</label>
-	</div>
-	</span>
-	
-	<span id="k">
-	<div>
-	  <input type="checkbox" id="k1" name="1"   checked>
-	  <label for="k1">root</label>
-	</div>
-	
-	<div>
-	  <input type="checkbox" id="k2" name="2">
-	  <label for="k2">BLOCKSIZE</label>
-	</div>
-	<div>
-	  <input type="checkbox" id="k3" name="3"   >
-	  <label for="k3">JOBS</label>
-	</div>
-	
-	<div>
-	  <input type="checkbox" id="k4" name="4">
-	  <label for="k4">LEVEL</label>
-	</div>
-	<div>
-	  <input type="checkbox" id="k5" name="5"   >
-	  <label for="k5">CHECKSUM</label>
-	</div>
-	
-	<div>
-	  <input type="checkbox" id="k6" name="6">
-	  <label for="k6">SKIP</label>
-	</div>
-	<div>
-	  <input type="checkbox" id="k7" name="7"   >
-	  <label for="k7">NoTransform</label>
-	</div>
-	
-	<div>
-	  <input type="checkbox" id="k8" name="8">
-	  <label for="k8">Huffman</label>
-	</div>
-	<div>
-	  <input type="checkbox" id="k9" name="9"   >
-	  <label for="k9">ANS0</label>
-	</div>
-	
-	<div>
-	  <input type="checkbox" id="k10" name="10">
-	  <label for="k10">ANS1</label>
-	</div>
-	<div>
-	  <input type="checkbox" id="k11" name="11"   >
-	  <label for="k11">Range</label>
-	</div>
-	
-	<div>
-	  <input type="checkbox" id="k12" name="12">
-	  <label for="k12">FPAQ</label>
-	</div>
-	<div>
-	  <input type="checkbox" id="k13" name="13"   >
-	  <label for="k13">TPAQ</label>
-	</div>
-	
-	<div>
-	  <input type="checkbox" id="k14" name="14">
-	  <label for="k14">CM</label>
-	</div>
-	<div>
-	  <input type="checkbox" id="k15" name="15"   >
-	  <label for="k15">NoEntropy</label>
-	</div>
-	
-	<div>
-	  <input type="checkbox" id="k16" name="16">
-	  <label for="k16">BWTS</label>
-	</div>
-	<div>
-	  <input type="checkbox" id="k17" name="17"   >
-	  <label for="k17">ROLZ</label>
-	</div>
-	
-	<div>
-	  <input type="checkbox" id="k18" name="18">
-	  <label for="k18">RLT</label>
-	</div>
-	<div>
-	  <input type="checkbox" id="k19" name="19"   >
-	  <label for="k19">ZRLT</label>
-	</div>
-	
-	<div>
-	  <input type="checkbox" id="k20" name="20">
-	  <label for="k20">MTFT</label>
-	</div>
-	<div>
-	  <input type="checkbox" id="k21" name="21"   >
-	  <label for="k21">RANK</label>
-	</div>
-	
-	<div>
-	  <input type="checkbox" id="k22" name="22">
-	  <label for="k22">TEXT</label>
-	</div>
-	<div>
-	  <input type="checkbox" id="k23" name="23"   >
-	  <label for="k23">X86</label>
-	</div>
-	
-	</span>
-	
 	
 	<button id="defaultSettings">Set default settings</button>
 	<button id="newSettings">compare Settings</button>
-	
-	<div id="result"></div>
-	
 	
 	<script src=${jsSRC}></script>
 	
@@ -341,6 +157,13 @@ function getWebviewContent(cssSRC: string, jsSRC: string){
 // this method is called when your extension is deactivated
 export function deactivate() {}
 
+function updateConfig(configFile: string, configData: any){
+	if(folderPath){
+		fs.writeFileSync(path.join(folderPath[0], configFile), configData.toString());
+	}
+}
+
+
 function initializeGreenide(context: vscode.ExtensionContext, greenidePackage : string){
 
 	//Request Parameterlist from Server
@@ -348,22 +171,25 @@ function initializeGreenide(context: vscode.ExtensionContext, greenidePackage : 
 		if(folderPath){
 			let standardConfigKeys : string[] = res.data;
 
-			let standardConfig : {[key: string]: number} = {};
+			currentParameterKeys = standardConfigKeys;
+			currentGreenidePackage = greenidePackage;
+
+			let standardConfigArray : number[] = [];
 
 			for (let i = 0; i < standardConfigKeys.length; i ++){
 				if(i === 0){
-					standardConfig[standardConfigKeys[i]] = 1;
+					standardConfigArray[i] = 1;
 				}else{
-					standardConfig[standardConfigKeys[i]] = 0;
+					standardConfigArray[i] = 0;
 				}
 			}
 
 			try {
 				if (!fs.existsSync(path.join(folderPath[0], configName))) {
-					fs.writeFileSync(path.join(folderPath[0], configName), JSON.stringify(standardConfig));
+					fs.writeFileSync(path.join(folderPath[0], configName), standardConfigArray.toString());
 				}
 				if (!fs.existsSync(path.join(folderPath[0], defaultConfigName))) {
-					fs.writeFileSync(path.join(folderPath[0], defaultConfigName), JSON.stringify(standardConfig));
+					fs.writeFileSync(path.join(folderPath[0], defaultConfigName), standardConfigArray.toString());
 				}
 			} catch(err) {
 				console.error(err);
@@ -375,26 +201,29 @@ function initializeGreenide(context: vscode.ExtensionContext, greenidePackage : 
 			configArrayCache = configArray;
 			defaultConfigArrayCache = defaultConfigArray;
 
-			registerNewMethodHover(context, configArray, defaultConfigArray, greenidePackage);
+			registerNewMethodHover(context, configArray, defaultConfigArray, currentGreenidePackage);
 		}
 
 		vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
 			if(folderPath){
 				if (document.fileName === path.join(folderPath[0], configName)) {
-					let configArray = readConfig(configName);
-
-					registerNewMethodHover(context, configArray, defaultConfigArrayCache, greenidePackage);
+					configsUpdated(configName, context);
 				}
 				if (document.fileName === path.join(folderPath[0], defaultConfigName)) {
-					let defaultConfigArray = readConfig(defaultConfigName);
-
-					registerNewMethodHover(context, configArrayCache, defaultConfigArray, greenidePackage);
+					configsUpdated(defaultConfigName, context);
 				}
 			}
 		});
 
 	});
 }
+
+
+function configsUpdated(configType: string, context: vscode.ExtensionContext){
+	let configArray = readConfig(configType);
+	registerNewMethodHover(context, configArrayCache, configArray, currentGreenidePackage);
+}
+
 
 function readConfig(configName: string){ 
 	let configArray: number[] = [];
@@ -403,8 +232,9 @@ function readConfig(configName: string){
 		let fileContent = fs.readFileSync(path.join(folderPath[0], configName));
 
 		try{
-			let configObject = JSON.parse(fileContent.toString());
-			configArray = Object.values(configObject);
+			configArray = fileContent.toString().split(",").map(function(item) {
+				return parseInt(item);
+			});;
 		}catch{
 			console.log("FEHLER in der greenide.config");
 		}
