@@ -2,7 +2,7 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import axios from 'axios';
-import {getWebviewContent as conf} from './config';
+//import {getWebviewContent as conf} from './config';
 
 // is required to read and wirte files with Node.js
 import * as fs from 'fs';
@@ -63,69 +63,280 @@ export function activate(context: vscode.ExtensionContext) {
 				enableScripts: true
 			}
 		);
-		
-		panel.webview.html = `
-		<!DOCTYPE html>
-		<html lang="en">
-		<head>
-		  <meta charset="utf-8">
-		  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-		
-		  <title>Hello World</title>
-		</head>
-		<body>
-		<p>Choose your Settings:</p>
-		
-		<div>
-		  <input type="checkbox" id="Nummer1" name="1"
-				 checked>
-		  <label for="1">Checkbox1</label>
-		</div>
-		
-		<div>
-		  <input type="checkbox" id="Nummer2" name="2">
-		  <label for="2">Checkbox2</label>
-		</div>
-		
-		<button id="go">Say hello</button>
-		
-		<div id="result"></div>
-		
-		<script type="text/javascript">
-		
-		"use strict";
-		
-		function greet() {
-			document.getElementById('result').innerHTML = 'Hello World';
-			 
-		 var filename = "readme.txt";
-		var text = "Text of the file goes here.";
-		var blob = new Blob([text], {type:'text/plain'});
-		var link = document.createElement("a");
-		link.download = filename;
-		link.innerHTML = "Download File";
-		link.href = window.URL.createObjectURL(blob);
-		document.body.appendChild(link);
-		
-			return false;
-			
-		}
-		
-		document.getElementById('go').addEventListener('click', greet);
-		
-		</script>
-		
-		</body>
-		</html>`;
-	/*	panel.onDidDispose(() => {},
-		null,
-		context.subscriptions);
-	*/
-	});
+		const cssPath = vscode.Uri.file(
+			path.join(context.extensionPath, 'src', 'style.css')
+		);
+		const cssSRC = panel.webview.asWebviewUri(cssPath);
 
+		const jsPath = vscode.Uri.file(
+			path.join(context.extensionPath, 'src', 'script.js')
+		);
+
+		const jsSRC = panel.webview.asWebviewUri(jsPath);
+		panel.webview.html = getWebviewContent(cssSRC.toString(), jsSRC.toString());
+		panel.webview.onDidReceiveMessage(
+			message => {
+				switch (message.command) {
+					case 'configChange':
+					console.log(message.text);
+					return;
+				}
+			},
+			undefined,
+			context.subscriptions
+		);
+	});
 	context.subscriptions.push(disposable);
 }
 
+function getWebviewContent(cssSRC: string, jsSRC: string){
+	return `<!DOCTYPE html>
+	<html lang="en">
+	<head>
+	  <meta charset="utf-8">
+	  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+	
+	  <title>Hello World</title>
+	  <link href="${cssSRC}" rel="stylesheet" type="text/css">
+	 
+	</head>
+	
+	<body>
+	<h1 style="color:#2ecc71";>GREENIDE SETTINGS</h1>
+	
+	<fieldset class="fieldset-auto-width">
+	<legend>Choose your program:</legend>
+	<div class="toggle">
+		<input type="radio" id="kanzi" name="Programm" value="Kanzi"checked>
+		<label for="kanzi"> Kanzi</label> 
+		
+		<input type="radio" id="dc" name="Programm" value="density-converter">
+		<label for="dc"> density-converter</label>
+	  </div>
+	 </fieldset>
+	
+	
+	
+	<span id="d">
+	<div>
+	  <input type="checkbox" id="d1" name="1"   checked>
+	  <label for="d1">root</label>
+	</div>
+	
+	<div>
+	  <input type="checkbox" id="d2" name="2">
+	  <label for="d2">AllPlatforms</label>
+	</div>
+	<div>
+	  <input type="checkbox" id="d3" name="3"   >
+	  <label for="d3">Android</label>
+	</div>
+	
+	<div>
+	  <input type="checkbox" id="d4" name="4">
+	  <label for="d4">Windows</label>
+	</div>
+	<div>
+	  <input type="checkbox" id="d5" name="5"   >
+	  <label for="d5">Web</label>
+	</div>
+	
+	<div>
+	  <input type="checkbox" id="d6" name="6">
+	  <label for="d6">IOS</label>
+	</div>
+	<div>
+	  <input type="checkbox" id="d7" name="7"   >
+	  <label for="d7">IncludeLdpiTvdpi</label>
+	</div>
+	
+	<div>
+	  <input type="checkbox" id="d8" name="8">
+	  <label for="d8">MipmapInODrawable</label>
+	</div>
+	<div>
+	  <input type="checkbox" id="d9" name="9"   >
+	  <label for="d9">AntiAliasing</label>
+	</div>
+	
+	<div>
+	  <input type="checkbox" id="d10" name="10">
+	  <label for="d10">CreateImagesetFolders</label>
+	</div>
+	<div>
+	  <input type="checkbox" id="d11" name="11"   >
+	  <label for="d11">Keep</label>
+	</div>
+	
+	<div>
+	  <input type="checkbox" id="d12" name="12">
+	  <label for="d12">PNG</label>
+	</div>
+	<div>
+	  <input type="checkbox" id="d13" name="13"   >
+	  <label for="d13">BMP</label>
+	</div>
+	
+	<div>
+	  <input type="checkbox" id="d14" name="14">
+	  <label for="d14">GIF</label>
+	</div>
+	<div>
+	  <input type="checkbox" id="d15" name="15"   >
+	  <label for="d15">JPG</label>
+	</div>
+	
+	<div>
+	  <input type="checkbox" id="d16" name="16">
+	  <label for="d16">round</label>
+	</div>
+	<div>
+	  <input type="checkbox" id="d17" name="17"   >
+	  <label for="d17">ceil</label>
+	</div>
+	
+	<div>
+	  <input type="checkbox" id="d18" name="18">
+	  <label for="d18">floor</label>
+	</div>
+	<div>
+	  <input type="checkbox" id="d19" name="19"   >
+	  <label for="d19">skipExisting</label>
+	</div>
+	
+	<div>
+	  <input type="checkbox" id="d20" name="20">
+	  <label for="d20">QualityComp</label>
+	</div>
+	<div>
+	  <input type="checkbox" id="d21" name="21"   >
+	  <label for="d21">Scale</label>
+	</div>
+	<div>
+	  <input type="checkbox" id="d22" name="22"   >
+	  <label for="d22">Threads</label>
+	</div>
+	</span>
+	
+	<span id="k">
+	<div>
+	  <input type="checkbox" id="k1" name="1"   checked>
+	  <label for="k1">root</label>
+	</div>
+	
+	<div>
+	  <input type="checkbox" id="k2" name="2">
+	  <label for="k2">BLOCKSIZE</label>
+	</div>
+	<div>
+	  <input type="checkbox" id="k3" name="3"   >
+	  <label for="k3">JOBS</label>
+	</div>
+	
+	<div>
+	  <input type="checkbox" id="k4" name="4">
+	  <label for="k4">LEVEL</label>
+	</div>
+	<div>
+	  <input type="checkbox" id="k5" name="5"   >
+	  <label for="k5">CHECKSUM</label>
+	</div>
+	
+	<div>
+	  <input type="checkbox" id="k6" name="6">
+	  <label for="k6">SKIP</label>
+	</div>
+	<div>
+	  <input type="checkbox" id="k7" name="7"   >
+	  <label for="k7">NoTransform</label>
+	</div>
+	
+	<div>
+	  <input type="checkbox" id="k8" name="8">
+	  <label for="k8">Huffman</label>
+	</div>
+	<div>
+	  <input type="checkbox" id="k9" name="9"   >
+	  <label for="k9">ANS0</label>
+	</div>
+	
+	<div>
+	  <input type="checkbox" id="k10" name="10">
+	  <label for="k10">ANS1</label>
+	</div>
+	<div>
+	  <input type="checkbox" id="k11" name="11"   >
+	  <label for="k11">Range</label>
+	</div>
+	
+	<div>
+	  <input type="checkbox" id="k12" name="12">
+	  <label for="k12">FPAQ</label>
+	</div>
+	<div>
+	  <input type="checkbox" id="k13" name="13"   >
+	  <label for="k13">TPAQ</label>
+	</div>
+	
+	<div>
+	  <input type="checkbox" id="k14" name="14">
+	  <label for="k14">CM</label>
+	</div>
+	<div>
+	  <input type="checkbox" id="k15" name="15"   >
+	  <label for="k15">NoEntropy</label>
+	</div>
+	
+	<div>
+	  <input type="checkbox" id="k16" name="16">
+	  <label for="k16">BWTS</label>
+	</div>
+	<div>
+	  <input type="checkbox" id="k17" name="17"   >
+	  <label for="k17">ROLZ</label>
+	</div>
+	
+	<div>
+	  <input type="checkbox" id="k18" name="18">
+	  <label for="k18">RLT</label>
+	</div>
+	<div>
+	  <input type="checkbox" id="k19" name="19"   >
+	  <label for="k19">ZRLT</label>
+	</div>
+	
+	<div>
+	  <input type="checkbox" id="k20" name="20">
+	  <label for="k20">MTFT</label>
+	</div>
+	<div>
+	  <input type="checkbox" id="k21" name="21"   >
+	  <label for="k21">RANK</label>
+	</div>
+	
+	<div>
+	  <input type="checkbox" id="k22" name="22">
+	  <label for="k22">TEXT</label>
+	</div>
+	<div>
+	  <input type="checkbox" id="k23" name="23"   >
+	  <label for="k23">X86</label>
+	</div>
+	
+	</span>
+	
+	
+	<button id="defaultSettings">Set default settings</button>
+	<button id="newSettings">compare Settings</button>
+	
+	<div id="result"></div>
+	
+	
+	<script src=${jsSRC}></script>
+	
+	</body>
+	</html>`;
+}
 
 // this method is called when your extension is deactivated
 export function deactivate() {}
@@ -213,8 +424,8 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 		// console.log("Funktionen:", definedFunctions);
 		// console.log("Runtime-Hotspots:", hotspotRuntime);
 		// console.log("Energy-Hotspots:", hotspotEnergy);
-		 console.log("Runtime-Greenspots:", greenspotRuntime);
-		 console.log("Energy-Greenspots:", greenspotEnergy);
+		//console.log("Runtime-Greenspots:", greenspotRuntime);
+		//console.log("Energy-Greenspots:", greenspotEnergy);
 
 		//greenspotarray analog 
 
