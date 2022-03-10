@@ -24,7 +24,7 @@
 				"title": "Initialize Greenide"
 			},
 			{
-				"command": "greenide.conf",
+				"command": "greenide.config",
 				"title": "Einstellung"
 			}
 		]

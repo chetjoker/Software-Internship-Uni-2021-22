@@ -57,13 +57,14 @@ export function activate(context: vscode.ExtensionContext) {
 		initializeGreenide(context, greenidePackage);
 	});
 
-	vscode.commands.registerCommand('greenide.conf', () => {		
+	vscode.commands.registerCommand('greenide.config', () => {		
 		const panel = vscode.window.createWebviewPanel(
 			'GreenIde',
 			'Settings',
 			vscode.ViewColumn.One,
 			{
-				enableScripts: true
+				enableScripts: true,
+				//retainContextWhenHidden: true
 			}
 		);
 		const cssPath = vscode.Uri.file(
@@ -121,7 +122,7 @@ function getWebviewContent(cssSRC: string, jsSRC: string){
 	  <meta charset="utf-8">
 	  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 	
-	  <title>Hello World</title>
+	  <title>Settingswindow</title>
 	  <link href="${cssSRC}" rel="stylesheet" type="text/css">
 	 
 	</head>
@@ -129,24 +130,12 @@ function getWebviewContent(cssSRC: string, jsSRC: string){
 	<body>
 	<h1 style="color:#2ecc71";>GREENIDE SETTINGS</h1>
 	
-	<fieldset class="fieldset-auto-width">
-	<legend>Choose your program:</legend>
-	<div class="toggle">
-		<input type="radio" id="kanzi" name="Programm" value="Kanzi"checked>
-		<label for="kanzi"> Kanzi</label> 
-		
-		<input type="radio" id="dc" name="Programm" value="density-converter">
-		<label for="dc"> density-converter</label>
-	  </div>
-	 </fieldset>
-	
-	
-	
+
 	<div id="parameters">
 	</div>
 	
-	<button id="defaultSettings">Set default settings</button>
-	<button id="newSettings">compare Settings</button>
+	<button id="defaultSettings">Set greenide.default.config</button>
+	<button id="newSettings">Set greenide.config</button>
 	
 	<script src=${jsSRC}></script>
 	
@@ -264,7 +253,7 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 			disposable.dispose();
 		});
 
-		highlightHotAndGreenspots(hotspotRuntime, hotspotEnergy, greenspotRuntime, greenspotEnergy, 10, "energy");
+		highlightHotAndGreenspots(hotspotRuntime, hotspotEnergy, greenspotRuntime, greenspotEnergy, 10, "energy");//'energy' oder 'runtime' als vergleichsparameter festlegbar
 
 		vscode.window.onDidChangeVisibleTextEditors(event => {
 			highlightHotAndGreenspots(hotspotRuntime, hotspotEnergy, greenspotRuntime, greenspotEnergy, 10, "energy");
