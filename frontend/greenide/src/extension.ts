@@ -64,7 +64,7 @@ export function activate(context: vscode.ExtensionContext) {
 			vscode.ViewColumn.One,
 			{
 				enableScripts: true,
-				//retainContextWhenHidden: true
+				retainContextWhenHidden: true
 			}
 		);
 		const cssPath = vscode.Uri.file(
@@ -131,10 +131,10 @@ function getWebviewContent(cssSRC: string, jsSRC: string){
 	<h1 style="color:#2ecc71";>GREENIDE SETTINGS</h1>
 	
 
-	<div id="parameters">
-	</div>
+	<fieldset id="parameters">
+	</fieldset>
 	
-	<button id="defaultSettings">Set greenide.default.config</button>
+	<button id="defaultSettings">Set default.config</button>
 	<button id="newSettings">Set greenide.config</button>
 	
 	<script src=${jsSRC}></script>

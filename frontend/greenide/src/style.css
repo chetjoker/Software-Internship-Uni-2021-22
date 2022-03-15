@@ -1,7 +1,20 @@
+[id="parameters"] {
+	position: absolute;
+	left: 0px;
+	height: 550px;
+}
+
+fieldset{
+	display: inline-block;
+	margin: 0px 20px;
+}
+
+
+
 button {
   position: relative;
   padding: 10px 40px;
-  margin: 20px 10px 10px 0px;
+  margin: 5px 5px;
   float: left;
   border-radius: 3px;
   font-size: 20px;
@@ -13,6 +26,7 @@ button {
   text-shadow: 0px -2px #27ae60;
   -webkit-transition: all 0.1s;
   transition: all 0.1s;
+  top: 570px;
 }
 button:active {
   -webkit-transform: translate(0px, 5px);
