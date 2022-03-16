@@ -47,6 +47,8 @@ let defaultConfigArrayCache : any[] = [];
 
 let currentParameterKeys : any[] = [];
 
+let currentHoverProvider : vscode.Disposable;
+
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
@@ -77,7 +79,9 @@ export function activate(context: vscode.ExtensionContext) {
 		);
 
 		const jsSRC = panel.webview.asWebviewUri(jsPath);
+		
 		panel.webview.html = getWebviewContent(cssSRC.toString(), jsSRC.toString());
+
 		panel.webview.onDidReceiveMessage(
 			message => {
 				switch (message.command) {
@@ -209,8 +213,22 @@ function initializeGreenide(context: vscode.ExtensionContext, greenidePackage : 
 
 
 function configsUpdated(configType: string, context: vscode.ExtensionContext){
-	let configArray = readConfig(configType);
-	registerNewMethodHover(context, configArrayCache, configArray, currentGreenidePackage);
+	let configArray : any[] = configArrayCache;
+	let defaultConfigArray : any[] = defaultConfigArrayCache;
+	
+	switch(configType){
+		case configName:
+			configArray = readConfig(configType);
+			break;
+		case defaultConfigName:
+			defaultConfigArray = readConfig(configType);
+			break;	
+		default:
+			console.log("ERROR: Invalid Config Name (configsUpdated)");
+			break;
+	}
+	
+	registerNewMethodHover(context, configArray, defaultConfigArray, currentGreenidePackage);
 }
 
 
@@ -240,18 +258,13 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 		let hotspotEnergy: any = res.data.hotspotEnergy;
 		let greenspotRuntime: any = [].concat(hotspotRuntime).reverse();//Achtung die ersten Elemente werden immer -1 als runtime- und energyHotspot haben
 		let greenspotEnergy: any = [].concat(hotspotEnergy).reverse();  //same thing
-		// console.log("Funktionen:", definedFunctions);
-		// console.log("Runtime-Hotspots:", hotspotRuntime);
-		// console.log("Energy-Hotspots:", hotspotEnergy);
-		// console.log("Runtime-Greenspots:", greenspotRuntime);
-		// console.log("Energy-Greenspots:", greenspotEnergy);
 
 		//greenspotarray analog 
 
 		//Entferne vorherige HoverProvider
-		context.subscriptions.forEach((disposable: vscode.Disposable) => {
-			disposable.dispose();
-		});
+		if(currentHoverProvider){
+			currentHoverProvider.dispose();
+		}
 
 		highlightHotAndGreenspots(hotspotRuntime, hotspotEnergy, greenspotRuntime, greenspotEnergy, 10, "energy");//'energy' oder 'runtime' als vergleichsparameter festlegbar
 
@@ -299,8 +312,7 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 				}
 			}
 		});
-
-
+		currentHoverProvider = disposable;
 		context.subscriptions.push(disposable);
 	}).catch((error) => {
 		console.log(error.response);
