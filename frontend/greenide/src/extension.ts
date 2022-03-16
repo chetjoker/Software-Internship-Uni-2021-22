@@ -2,10 +2,10 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import axios from 'axios';
+//import {getWebviewContent as conf} from './config';
 
 // is required to read and wirte files with Node.js
 import * as fs from 'fs';
-import { reverse } from 'dns';
 
 const path = require('path');
 
@@ -14,6 +14,8 @@ let folderPath = vscode.workspace.workspaceFolders?.map(folder => folder.uri.fsP
 
 const configName = "greenide.config";
 const defaultConfigName = "greenide.default.config";
+
+let currentGreenidePackage = "";
 
 // decortor type for hotspots
 const hotspotsDecoration = vscode.window.createTextEditorDecorationType({
@@ -43,6 +45,10 @@ const greenspotDecoration = vscode.window.createTextEditorDecorationType({
 let configArrayCache : any[] = [];
 let defaultConfigArrayCache : any[] = [];
 
+let currentParameterKeys : any[] = [];
+
+let currentHoverProvider : vscode.Disposable;
+
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
@@ -53,11 +59,103 @@ export function activate(context: vscode.ExtensionContext) {
 		initializeGreenide(context, greenidePackage);
 	});
 
+	vscode.commands.registerCommand('greenide.config', () => {		
+		const panel = vscode.window.createWebviewPanel(
+			'GreenIde',
+			'Settings',
+			vscode.ViewColumn.One,
+			{
+				enableScripts: true,
+				retainContextWhenHidden: true
+			}
+		);
+		const cssPath = vscode.Uri.file(
+			path.join(context.extensionPath, 'src', 'style.css')
+		);
+		const cssSRC = panel.webview.asWebviewUri(cssPath);
+
+		const jsPath = vscode.Uri.file(
+			path.join(context.extensionPath, 'src', 'script.js')
+		);
+
+		const jsSRC = panel.webview.asWebviewUri(jsPath);
+		
+		panel.webview.html = getWebviewContent(cssSRC.toString(), jsSRC.toString());
+
+		panel.webview.onDidReceiveMessage(
+			message => {
+				switch (message.command) {
+					case 'configChange':
+						let configFileName = "";
+						switch(message.configType){
+							case "custom":
+								configFileName = configName;
+								break;
+							default:
+								configFileName = defaultConfigName;
+								break;
+						}
+						
+						//Ändert die ConfigDatei
+						updateConfig(configFileName, message.configData);
+						//Schickt Updates an Server
+						configsUpdated(configFileName, context);
+						break;
+				}
+			},
+			undefined,
+			context.subscriptions
+		);
+
+		if(currentParameterKeys.length > 0){
+			panel.webview.postMessage({ 
+				command: 'setParameters', 
+				parameterKeys: currentParameterKeys,
+				configData: readConfig(configName),
+				defaultConfigData: readConfig(defaultConfigName),
+			});
+		}
+	});
 	context.subscriptions.push(disposable);
+}
+
+function getWebviewContent(cssSRC: string, jsSRC: string){
+	return `<!DOCTYPE html>
+	<html lang="en">
+	<head>
+	  <meta charset="utf-8">
+	  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+	
+	  <title>Settingswindow</title>
+	  <link href="${cssSRC}" rel="stylesheet" type="text/css">
+	 
+	</head>
+	
+	<body>
+	<h1 style="color:#2ecc71";>GREENIDE SETTINGS</h1>
+	
+
+	<fieldset id="parameters">
+	</fieldset>
+	
+	<button id="defaultSettings">Set default.config</button>
+	<button id="newSettings">Set greenide.config</button>
+	
+	<script src=${jsSRC}></script>
+	
+	</body>
+	</html>`;
 }
 
 // this method is called when your extension is deactivated
 export function deactivate() {}
+
+function updateConfig(configFile: string, configData: any){
+	if(folderPath){
+		fs.writeFileSync(path.join(folderPath[0], configFile), configData.toString());
+	}
+}
+
 
 function initializeGreenide(context: vscode.ExtensionContext, greenidePackage : string){
 
@@ -66,22 +164,25 @@ function initializeGreenide(context: vscode.ExtensionContext, greenidePackage : 
 		if(folderPath){
 			let standardConfigKeys : string[] = res.data;
 
-			let standardConfig : {[key: string]: number} = {};
+			currentParameterKeys = standardConfigKeys;
+			currentGreenidePackage = greenidePackage;
+
+			let standardConfigArray : number[] = [];
 
 			for (let i = 0; i < standardConfigKeys.length; i ++){
 				if(i === 0){
-					standardConfig[standardConfigKeys[i]] = 1;
+					standardConfigArray[i] = 1;
 				}else{
-					standardConfig[standardConfigKeys[i]] = 0;
+					standardConfigArray[i] = 0;
 				}
 			}
 
 			try {
 				if (!fs.existsSync(path.join(folderPath[0], configName))) {
-					fs.writeFileSync(path.join(folderPath[0], configName), JSON.stringify(standardConfig));
+					fs.writeFileSync(path.join(folderPath[0], configName), standardConfigArray.toString());
 				}
 				if (!fs.existsSync(path.join(folderPath[0], defaultConfigName))) {
-					fs.writeFileSync(path.join(folderPath[0], defaultConfigName), JSON.stringify(standardConfig));
+					fs.writeFileSync(path.join(folderPath[0], defaultConfigName), standardConfigArray.toString());
 				}
 			} catch(err) {
 				console.error(err);
@@ -93,26 +194,43 @@ function initializeGreenide(context: vscode.ExtensionContext, greenidePackage : 
 			configArrayCache = configArray;
 			defaultConfigArrayCache = defaultConfigArray;
 
-			registerNewMethodHover(context, configArray, defaultConfigArray, greenidePackage);
+			registerNewMethodHover(context, configArray, defaultConfigArray, currentGreenidePackage);
 		}
 
 		vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
 			if(folderPath){
 				if (document.fileName === path.join(folderPath[0], configName)) {
-					let configArray = readConfig(configName);
-
-					registerNewMethodHover(context, configArray, defaultConfigArrayCache, greenidePackage);
+					configsUpdated(configName, context);
 				}
 				if (document.fileName === path.join(folderPath[0], defaultConfigName)) {
-					let defaultConfigArray = readConfig(defaultConfigName);
-
-					registerNewMethodHover(context, configArrayCache, defaultConfigArray, greenidePackage);
+					configsUpdated(defaultConfigName, context);
 				}
 			}
 		});
 
 	});
 }
+
+
+function configsUpdated(configType: string, context: vscode.ExtensionContext){
+	let configArray : any[] = configArrayCache;
+	let defaultConfigArray : any[] = defaultConfigArrayCache;
+	
+	switch(configType){
+		case configName:
+			configArray = readConfig(configType);
+			break;
+		case defaultConfigName:
+			defaultConfigArray = readConfig(configType);
+			break;	
+		default:
+			console.log("ERROR: Invalid Config Name (configsUpdated)");
+			break;
+	}
+	
+	registerNewMethodHover(context, configArray, defaultConfigArray, currentGreenidePackage);
+}
+
 
 function readConfig(configName: string){ 
 	let configArray: number[] = [];
@@ -121,8 +239,9 @@ function readConfig(configName: string){
 		let fileContent = fs.readFileSync(path.join(folderPath[0], configName));
 
 		try{
-			let configObject = JSON.parse(fileContent.toString());
-			configArray = Object.values(configObject);
+			configArray = fileContent.toString().split(",").map(function(item) {
+				return parseInt(item);
+			});;
 		}catch{
 			console.log("FEHLER in der greenide.config");
 		}
@@ -139,20 +258,15 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 		let hotspotEnergy: any = res.data.hotspotEnergy;
 		let greenspotRuntime: any = [].concat(hotspotRuntime).reverse();//Achtung die ersten Elemente werden immer -1 als runtime- und energyHotspot haben
 		let greenspotEnergy: any = [].concat(hotspotEnergy).reverse();  //same thing
-		// console.log("Funktionen:", definedFunctions);
-		// console.log("Runtime-Hotspots:", hotspotRuntime);
-		// console.log("Energy-Hotspots:", hotspotEnergy);
-		 console.log("Runtime-Greenspots:", greenspotRuntime);
-		 console.log("Energy-Greenspots:", greenspotEnergy);
 
 		//greenspotarray analog 
 
 		//Entferne vorherige HoverProvider
-		context.subscriptions.forEach((disposable: vscode.Disposable) => {
-			disposable.dispose();
-		});
+		if(currentHoverProvider){
+			currentHoverProvider.dispose();
+		}
 
-		highlightHotAndGreenspots(hotspotRuntime, hotspotEnergy, greenspotRuntime, greenspotEnergy, 10, "energy");
+		highlightHotAndGreenspots(hotspotRuntime, hotspotEnergy, greenspotRuntime, greenspotEnergy, 10, "energy");//'energy' oder 'runtime' als vergleichsparameter festlegbar
 
 		vscode.window.onDidChangeVisibleTextEditors(event => {
 			highlightHotAndGreenspots(hotspotRuntime, hotspotEnergy, greenspotRuntime, greenspotEnergy, 10, "energy");
@@ -178,7 +292,7 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 							const energyChange = (definedFunction.energy - hotspot.oldEnergy);
 
 							hoverText += "\nRuntimeChange: " + (runtimeChange > 0 ? '+' : '') + runtimeChange.toFixed(2) + " ms";
-							hoverText += "\nEnergyChange: " + (runtimeChange > 0 ? '+' : '') + energyChange.toFixed(2) + " mWs";
+							hoverText += "\nEnergyChange: " + (energyChange > 0 ? '+' : '') + energyChange.toFixed(2) + " mWs";
 							isInArray = true;
 						}
 					}
@@ -198,8 +312,7 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 				}
 			}
 		});
-
-
+		currentHoverProvider = disposable;
 		context.subscriptions.push(disposable);
 	}).catch((error) => {
 		console.log(error.response);
