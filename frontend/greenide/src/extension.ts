@@ -243,8 +243,8 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 		// console.log("Funktionen:", definedFunctions);
 		// console.log("Runtime-Hotspots:", hotspotRuntime);
 		// console.log("Energy-Hotspots:", hotspotEnergy);
-		//console.log("Runtime-Greenspots:", greenspotRuntime);
-		//console.log("Energy-Greenspots:", greenspotEnergy);
+		// console.log("Runtime-Greenspots:", greenspotRuntime);
+		// console.log("Energy-Greenspots:", greenspotEnergy);
 
 		//greenspotarray analog 
 
@@ -279,7 +279,7 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 							const energyChange = (definedFunction.energy - hotspot.oldEnergy);
 
 							hoverText += "\nRuntimeChange: " + (runtimeChange > 0 ? '+' : '') + runtimeChange.toFixed(2) + " ms";
-							hoverText += "\nEnergyChange: " + (runtimeChange > 0 ? '+' : '') + energyChange.toFixed(2) + " mWs";
+							hoverText += "\nEnergyChange: " + (energyChange > 0 ? '+' : '') + energyChange.toFixed(2) + " mWs";
 							isInArray = true;
 						}
 					}
