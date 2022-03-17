@@ -44,8 +44,9 @@ window.addEventListener('message', event => {
         message.parameterKeys.forEach((key, index) => {
           let checked1 = message.defaultConfigData[index] ? 'checked' : '';
           let checked2 = message.configData[index] ? 'checked' : '';
-          HTMLstring1 += `<div><input type="checkbox" id="d${index}" ${checked1}><label for="d${index}">${key}</label></div>`;
-          HTMLstring2 += `<div><input type="checkbox" id="c${index}" ${checked2}><label for="c${index}">${key}</label></div>`;
+          let disabledCheckboxes = index==0 ? 'disabled' : '';
+          HTMLstring1 += `<div><input type="checkbox" id="d${index}" ${checked1} ${disabledCheckboxes}><label for="d${index}">${key}</label></div>`;
+          HTMLstring2 += `<div><input type="checkbox" id="c${index}" ${checked2} ${disabledCheckboxes}><label for="c${index}">${key}</label></div>`;
         });
         HTMLstring=`<fieldset>` + HTMLstring1 + `</fieldset><fieldset>` + HTMLstring2 + `</fieldset>`;
         document.getElementById("parameters").innerHTML = HTMLstring;
