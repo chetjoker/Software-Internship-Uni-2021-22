@@ -662,7 +662,6 @@ function queryFunctionNames(document: vscode.TextDocument, definedFunctions: any
 							//Sonderbehandlung für Subclasses
 							if((!isSubClass || isInSubclass) && subClassIndex >= highestSubClassIndex){
 								highestSubClassIndex = subClassIndex;
-								console.log(suffixRegex, prefixRegex);
 								callback(definedFunction);
 								return;
 							}
