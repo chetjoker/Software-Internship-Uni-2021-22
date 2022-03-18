@@ -115,6 +115,19 @@ export function activate(context: vscode.ExtensionContext) {
 			context.subscriptions
 		);
 
+		if(folderPath && configArrayCache.length > 0 && defaultConfigArrayCache.length > 0){
+			try {
+				if (!fs.existsSync(path.join(folderPath[0], configName))) {
+					fs.writeFileSync(path.join(folderPath[0], configName), configArrayCache.toString());
+				}
+				if (!fs.existsSync(path.join(folderPath[0], defaultConfigName))) {
+					fs.writeFileSync(path.join(folderPath[0], defaultConfigName), defaultConfigArrayCache.toString());
+				}
+			} catch(err) {
+				console.error(err);
+			}
+		}
+
 		if(currentParameterKeys.length > 0){
 			panel.webview.postMessage({ 
 				command: 'setParameters', 
@@ -193,6 +206,7 @@ export function activate(context: vscode.ExtensionContext) {
 			undefined,
 			context.subscriptions
 		);
+
 
 		if(currentHotspotRuntime && currentHotspotEnergy && currentGreenspotRuntime && currentGreenspotEnergy){
 			currentHotspotWebviewPanel.webview.postMessage({ 
@@ -318,7 +332,7 @@ function initializeGreenide(context: vscode.ExtensionContext){
 				if(folderPath){
 					let standardConfigKeys : string[] = res.data;
 
-					currentParameterKeys = standardConfigKeys;
+					currentParameterKeys = res.data;
 
 					let standardConfigArray : number[] = [];
 
