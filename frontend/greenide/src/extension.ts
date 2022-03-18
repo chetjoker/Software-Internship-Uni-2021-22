@@ -306,7 +306,7 @@ function initializeGreenide(context: vscode.ExtensionContext){
 		let models = res.data;
 
 		models.forEach((model: any) => {
-			if(fs.existsSync(path.join(vscode.workspace.rootPath, model.path))){
+			if(fs.existsSync(path.join(vscode.workspace.rootPath, model.requiredPath))){
 				currentModel = model;
 			}
 		});
@@ -619,7 +619,8 @@ function queryFunctionNames(document: vscode.TextDocument, definedFunctions: any
 
 			let suffixRegex : RegExp = /^\(.*\)[^\;\}\(]*{/;
 			let prefixRegex : RegExp = /\s$/;
-
+			
+			//Sonderfall Static Konstruktor
 			if(functionName === "<clinit>"){
 				prefixRegex = /class[^\;\}\(\{\)]*$/;
 				suffixRegex = /^[\s]*{/;

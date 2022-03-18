@@ -9,11 +9,13 @@ const app = express();
 const models = [
   {
     name: "kanzi",
-    path: "java/src/main/java"
+    path: "java/src/main/java",
+    requiredPath: "java/src/main/java/kanzi"
   },
   {
     name: "dconvert",
-    path: "src/main/java"
+    path: "src/main/java",
+    requiredPath: "src/main/java/at/favre/tools/dconvert"
   }
 ]
 
