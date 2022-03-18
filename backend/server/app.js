@@ -6,6 +6,17 @@ const sortArray = require('sort-array')
 const express = require('express');
 const app = express();
 
+const models = [
+  {
+    name: "kanzi",
+    path: "java/src/main/java"
+  },
+  {
+    name: "dconvert",
+    path: "src/main/java"
+  }
+]
+
 app.use(express.json());
 
 app.use(express.urlencoded({
@@ -17,7 +28,7 @@ const getMethodParameters = async (req, res) => {
     let hotspotRuntime = [];
     let hotspotEnergy = [];
 
-    let csv_data = await import_csv_reader.readCSV("./" + req.body.greenidePackage + ".csv");
+    let csv_data = await import_csv_reader.readCSV("./models/" + req.body.greenidePackage + ".csv");
     let methods = await import_csv_reader.readAndCalcParameters(req.body.config, csv_data); //Elemente haben die Form: {name: currentMethodName, runtime: currentRuntime, energy: currentEnergy}
 
     if( req.body.oldConfig.length>0 && !arrayEquals(req.body.oldConfig, req.body.config) ){
@@ -40,7 +51,7 @@ const getMethodParameters = async (req, res) => {
   }
 };
 
-app.post('/getMethodParameters', getMethodParameters)
+app.post('/getMethodParameters', getMethodParameters);
 
 app.post('/getParameters', async (req, res) => {
   if(req.body && req.body.greenidePackage){
@@ -55,6 +66,11 @@ app.post('/getParameters', async (req, res) => {
     res.status(500).send("wrong parameters")
   }
 })
+
+app.post('/getModels', async (req, res) => {
+  res.status(200).send(models);
+});
+
 module.exports = app;
 
 function arrayEquals(array1, array2){

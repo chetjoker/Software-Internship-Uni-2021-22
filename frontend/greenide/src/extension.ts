@@ -14,8 +14,6 @@ let folderPath = vscode.workspace.workspaceFolders?.map(folder => folder.uri.fsP
 const configName = "greenide.config";
 const defaultConfigName = "greenide.default.config";
 
-let currentGreenidePackage = "";
-
 // decortor type for hotspots
 const hotspotsDecoration = vscode.window.createTextEditorDecorationType({
 	overviewRulerLane: vscode.OverviewRulerLane.Full,
@@ -44,6 +42,8 @@ const greenspotDecoration = vscode.window.createTextEditorDecorationType({
 let configArrayCache : any[] = [];
 let defaultConfigArrayCache : any[] = [];
 
+let currentModel : any = {};
+
 let currentParameterKeys : any[] = [];
 
 let currentHoverProvider : vscode.Disposable;
@@ -64,8 +64,8 @@ export function activate(context: vscode.ExtensionContext) {
 
 	console.log('Congratulations, your extension "greenide" is now active!!');
 
-	let initDisposable = vscode.commands.registerCommand('greenide.init', (greenidePackage: string = 'kanzi') => {
-		initializeGreenide(context, greenidePackage);
+	let initDisposable = vscode.commands.registerCommand('greenide.init', () => {
+		initializeGreenide(context);
 	});
 	context.subscriptions.push(initDisposable);
 
@@ -177,7 +177,7 @@ export function activate(context: vscode.ExtensionContext) {
 							parts.pop();
 						}
 
-						let filePath = path.join(vscode.workspace.rootPath, "java", "src", "main", "java");
+						let filePath = path.join(vscode.workspace.rootPath, currentModel.path);
 						for(let i = 0; i < parts.length; i++){
 							filePath = path.join(filePath, parts[i]);
 						}
@@ -298,56 +298,72 @@ function updateConfig(configFile: string, configData: any){
 }
 
 
-function initializeGreenide(context: vscode.ExtensionContext, greenidePackage : string){
+function initializeGreenide(context: vscode.ExtensionContext){
 
-	//Request Parameterlist from Server
-	axios.post("http://server-backend-swtp-13.herokuapp.com/getParameters", {greenidePackage: greenidePackage}, {}).then(res => {
-		if(folderPath){
-			let standardConfigKeys : string[] = res.data;
+	//Verfügbare Modelle abfragen
+	axios.post("http://server-backend-swtp-13.herokuapp.com/getModels", {}, {}).then(res => {
 
-			currentParameterKeys = standardConfigKeys;
-			currentGreenidePackage = greenidePackage;
+		//Checken welches Modell man gerade braucht
+		let models = res.data;
 
-			let standardConfigArray : number[] = [];
-
-			for (let i = 0; i < standardConfigKeys.length; i ++){
-				if(i === 0){
-					standardConfigArray[i] = 1;
-				}else{
-					standardConfigArray[i] = 0;
-				}
-			}
-
-			try {
-				if (!fs.existsSync(path.join(folderPath[0], configName))) {
-					fs.writeFileSync(path.join(folderPath[0], configName), standardConfigArray.toString());
-				}
-				if (!fs.existsSync(path.join(folderPath[0], defaultConfigName))) {
-					fs.writeFileSync(path.join(folderPath[0], defaultConfigName), standardConfigArray.toString());
-				}
-			} catch(err) {
-				console.error(err);
-			}
-
-			let configArray = readConfig(configName);
-			let defaultConfigArray = readConfig(defaultConfigName);
-
-			configArrayCache = configArray;
-			defaultConfigArrayCache = defaultConfigArray;
-
-			registerNewMethodHover(context, configArray, defaultConfigArray, currentGreenidePackage);
-		}
-
-		vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
-			if(folderPath){
-				if (document.fileName === path.join(folderPath[0], configName)) {
-					configsUpdated(configName, context);
-				}
-				if (document.fileName === path.join(folderPath[0], defaultConfigName)) {
-					configsUpdated(defaultConfigName, context);
-				}
+		models.forEach((model: any) => {
+			if(fs.existsSync(path.join(vscode.workspace.rootPath, model.path))){
+				currentModel = model;
 			}
 		});
+
+		if(currentModel && currentModel.name){
+
+			//Request Parameterlist from Server
+			axios.post("http://server-backend-swtp-13.herokuapp.com/getParameters", {greenidePackage: currentModel.name}, {}).then(res => {
+				if(folderPath){
+					let standardConfigKeys : string[] = res.data;
+
+					currentParameterKeys = standardConfigKeys;
+
+					let standardConfigArray : number[] = [];
+
+					for (let i = 0; i < standardConfigKeys.length; i ++){
+						if(i === 0){
+							standardConfigArray[i] = 1;
+						}else{
+							standardConfigArray[i] = 0;
+						}
+					}
+
+					try {
+						if (!fs.existsSync(path.join(folderPath[0], configName))) {
+							fs.writeFileSync(path.join(folderPath[0], configName), standardConfigArray.toString());
+						}
+						if (!fs.existsSync(path.join(folderPath[0], defaultConfigName))) {
+							fs.writeFileSync(path.join(folderPath[0], defaultConfigName), standardConfigArray.toString());
+						}
+					} catch(err) {
+						console.error(err);
+					}
+
+					let configArray = readConfig(configName);
+					let defaultConfigArray = readConfig(defaultConfigName);
+
+					configArrayCache = configArray;
+					defaultConfigArrayCache = defaultConfigArray;
+
+					registerNewMethodHover(context, configArray, defaultConfigArray);
+				}
+
+				vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
+					if(folderPath){
+						if (document.fileName === path.join(folderPath[0], configName)) {
+							configsUpdated(configName, context);
+						}
+						if (document.fileName === path.join(folderPath[0], defaultConfigName)) {
+							configsUpdated(defaultConfigName, context);
+						}
+					}
+				});
+
+			});
+		}
 
 	});
 }
@@ -369,7 +385,7 @@ function configsUpdated(configType: string, context: vscode.ExtensionContext){
 			break;
 	}
 	
-	registerNewMethodHover(context, configArray, defaultConfigArray, currentGreenidePackage);
+	registerNewMethodHover(context, configArray, defaultConfigArray);
 }
 
 
@@ -390,10 +406,15 @@ function readConfig(configName: string){
 	return configArray;
 }
 
-function registerNewMethodHover(context: vscode.ExtensionContext, configArray: any[], defaultConfigArray: any[], greenidePackage : string){
+function registerNewMethodHover(context: vscode.ExtensionContext, configArray: any[], defaultConfigArray: any[]){
+
+	//Wenn kein passendes Modell gefunden wurde
+	if(!currentModel || !currentModel.name){
+		return;
+	}
 
 	//Abfrage zum Server
-	axios.post("http://server-backend-swtp-13.herokuapp.com/getMethodParameters", {config: configArray, greenidePackage: greenidePackage, oldConfig: defaultConfigArray}, {}).then(res => {
+	axios.post("http://server-backend-swtp-13.herokuapp.com/getMethodParameters", {config: configArray, greenidePackage: currentModel.name, oldConfig: defaultConfigArray}, {}).then(res => {
 		let definedFunctions: any = res.data.methods;
 		currentHotspotRuntime = res.data.hotspotRuntime;
 		currentHotspotEnergy = res.data.hotspotEnergy;
@@ -435,15 +456,28 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 
 				queryFunctionNames(document, definedFunctions, wordRange, (definedFunction: any) => {
 					hoverTriggered = true;
-					hoverText = "Function: " + definedFunction.name + "\nRuntime: " + definedFunction.runtime.toFixed(2) + " ms\nEnergy: " + definedFunction.energy.toFixed(2) + " mWs";
+					hoverText = "Function: " + definedFunction.name + 
+								"\nCustom-Config:" +
+								"\nRuntime: " + definedFunction.runtime.toFixed(2) + " ms" +
+								"\nEnergy: " + definedFunction.energy.toFixed(2) + " mWs";
+
 					let isInArray = false;
 					for(const hotspot of currentHotspotRuntime){
 						if(hotspot.name === definedFunction.name){
 							const runtimeChange = (definedFunction.runtime - hotspot.oldRuntime);
 							const energyChange = (definedFunction.energy - hotspot.oldEnergy);
+							
+							hoverText = "Function: " + definedFunction.name + 
+										"\nDefault-Config:" +
+										"\nRuntime: " + (definedFunction.runtime + runtimeChange).toFixed(2) + " ms" +
+										"\nEnergy: " + (definedFunction.energy + energyChange).toFixed(2) + " mWs" + 
+										"\nCustom-Config:" +
+										"\nRuntime: " + definedFunction.runtime.toFixed(2) + " ms" +
+										"\nEnergy: " + definedFunction.energy.toFixed(2) + " mWs" + 
+										"\nChange:" +
+										"\nRuntimeChange: " + (runtimeChange > 0 ? '+' : '') + runtimeChange.toFixed(2) + " ms" +
+										"\nEnergyChange: " + (energyChange > 0 ? '+' : '') + energyChange.toFixed(2) + " mWs";
 
-							hoverText += "\nRuntimeChange: " + (runtimeChange > 0 ? '+' : '') + runtimeChange.toFixed(2) + " ms";
-							hoverText += "\nEnergyChange: " + (energyChange > 0 ? '+' : '') + energyChange.toFixed(2) + " mWs";
 							isInArray = true;
 						}
 					}
