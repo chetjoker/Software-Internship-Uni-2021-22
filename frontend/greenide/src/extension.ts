@@ -2,7 +2,6 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import axios from 'axios';
-//import {getWebviewContent as conf} from './config';
 
 // is required to read and wirte files with Node.js
 import * as fs from 'fs';
@@ -49,17 +48,28 @@ let currentParameterKeys : any[] = [];
 
 let currentHoverProvider : vscode.Disposable;
 
+let currentHotspotRuntime : any;
+let currentHotspotEnergy : any;
+let currentGreenspotRuntime : any;
+let currentGreenspotEnergy : any;
+
+let currentHotspotType = "runtime";
+let currentHotspotCount = 5;
+
+let currentHotspotWebviewPanel : vscode.WebviewPanel;
+
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
 
 	console.log('Congratulations, your extension "greenide" is now active!!');
 
-	let disposable = vscode.commands.registerCommand('greenide.init', (greenidePackage: string = 'kanzi') => {
+	let initDisposable = vscode.commands.registerCommand('greenide.init', (greenidePackage: string = 'kanzi') => {
 		initializeGreenide(context, greenidePackage);
 	});
+	context.subscriptions.push(initDisposable);
 
-	vscode.commands.registerCommand('greenide.config', () => {		
+	let settingsDisposable = vscode.commands.registerCommand('greenide.config', () => {
 		const panel = vscode.window.createWebviewPanel(
 			'GreenIde',
 			'Settings',
@@ -70,17 +80,17 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 		);
 		const cssPath = vscode.Uri.file(
-			path.join(context.extensionPath, 'src', 'style.css')
+			path.join(context.extensionPath, 'src', "settingsPage", 'style.css')
 		);
 		const cssSRC = panel.webview.asWebviewUri(cssPath);
 
 		const jsPath = vscode.Uri.file(
-			path.join(context.extensionPath, 'src', 'script.js')
+			path.join(context.extensionPath, 'src', "settingsPage", 'script.js')
 		);
 
 		const jsSRC = panel.webview.asWebviewUri(jsPath);
 		
-		panel.webview.html = getWebviewContent(cssSRC.toString(), jsSRC.toString());
+		panel.webview.html = getSettingsPageContent(cssSRC.toString(), jsSRC.toString());
 
 		panel.webview.onDidReceiveMessage(
 			message => {
@@ -116,10 +126,93 @@ export function activate(context: vscode.ExtensionContext) {
 			});
 		}
 	});
-	context.subscriptions.push(disposable);
+	context.subscriptions.push(settingsDisposable);
+
+	let hotspotDisposable = vscode.commands.registerCommand('greenide.hotspots', () => {
+		currentHotspotWebviewPanel = vscode.window.createWebviewPanel(
+			'GreenIde',
+			'HotSpots',
+			vscode.ViewColumn.One,
+			{
+				enableScripts: true,
+				retainContextWhenHidden: true
+			}
+		);
+		const cssPath = vscode.Uri.file(
+			path.join(context.extensionPath, 'src', "hotspotPage", 'style.css')
+		);
+		const cssSRC = currentHotspotWebviewPanel.webview.asWebviewUri(cssPath);
+
+		const jsPath = vscode.Uri.file(
+			path.join(context.extensionPath, 'src', "hotspotPage", 'script.js')
+		);
+
+		const jsSRC = currentHotspotWebviewPanel.webview.asWebviewUri(jsPath);
+		
+		currentHotspotWebviewPanel.webview.html = getHotspotPageContent(cssSRC.toString(), jsSRC.toString());
+
+		currentHotspotWebviewPanel.webview.onDidReceiveMessage(
+			message => {
+				switch (message.command) {
+					case 'hotspotTypeChange':
+						currentHotspotType = message.hotspotType;
+						break;
+						
+					case 'hotspotCountChange':
+						currentHotspotCount = message.hotspotCount;
+						break;
+					case 'openEditor':
+						let methodName = message.methodName;
+						let parts = [];
+
+						if(methodName.indexOf("(") > -1){
+							methodName = methodName.replace(/\(.*\)/, "");
+						}
+
+						if(methodName.indexOf("$") > -1){
+							let firstSplit = methodName.split("$");
+							parts = firstSplit[0].split(".");
+						}else{
+							parts = methodName.split(".");
+							parts.pop();
+						}
+
+						let filePath = path.join(vscode.workspace.rootPath, "java", "src", "main", "java");
+						for(let i = 0; i < parts.length; i++){
+							filePath = path.join(filePath, parts[i]);
+						}
+						filePath += ".java";
+						
+						const openPath = vscode.Uri.file(filePath);
+						vscode.workspace.openTextDocument(openPath).then(doc => {
+							vscode.window.showTextDocument(doc);
+						});
+
+
+						break;
+				}
+			},
+			undefined,
+			context.subscriptions
+		);
+
+		if(currentHotspotRuntime && currentHotspotEnergy && currentGreenspotRuntime && currentGreenspotEnergy){
+			currentHotspotWebviewPanel.webview.postMessage({ 
+				command: 'sendHotspots',
+				hotspotCount: currentHotspotCount,
+				hotspotType: currentHotspotType,
+				hotspotRuntime: currentHotspotRuntime,
+				hotspotEnergy: currentHotspotEnergy,
+				greenspotRuntime: currentGreenspotRuntime,
+				greenspotEnergy: currentGreenspotEnergy,
+			});
+		}
+	});
+
+	context.subscriptions.push(hotspotDisposable);
 }
 
-function getWebviewContent(cssSRC: string, jsSRC: string){
+function getSettingsPageContent(cssSRC: string, jsSRC: string){
 	return `<!DOCTYPE html>
 	<html lang="en">
 	<head>
@@ -140,6 +233,54 @@ function getWebviewContent(cssSRC: string, jsSRC: string){
 	
 	<button id="defaultSettings">Set default.config</button>
 	<button id="newSettings">Set greenide.config</button>
+	
+	<script src=${jsSRC}></script>
+	
+	</body>
+	</html>`;
+}
+
+function getHotspotPageContent(cssSRC: string, jsSRC: string){
+	return `<!DOCTYPE html>
+	<html lang="en">
+	<head>
+	  <meta charset="utf-8">
+	  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+	
+	  <title>HotspotWindow</title>
+	  <link href="${cssSRC}" rel="stylesheet" type="text/css">
+	 
+	</head>
+	
+	<body>
+	<h1 style="color:#2ecc71";>GREENIDE HOTSPOTS</h1>
+	
+	<div class="row">
+		<select id="hotspotTypeSelect">
+			<option value="runtime" selected>Runtime</option>
+			<option value="energy">Energy</option>
+		</select>
+		<select id="hotspotCountSelect">
+			<option value="5">5</option>
+			<option value="10">10</option>
+			<option value="20">20</option>
+			<option value="50">50</option>
+		</select>
+	</div>
+
+	<div class="row">
+		<div class="column">
+			<h2>Hotspots</h2>
+			<div id="hotspotList" class="list">
+			</div>
+		</div>
+		
+		<div class="column">
+			<h2>Greenspots</h2>
+			<div id="greenspotList" class="list">
+			</div>
+		</div>
+	</div>
 	
 	<script src=${jsSRC}></script>
 	
@@ -254,22 +395,31 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 	//Abfrage zum Server
 	axios.post("http://server-backend-swtp-13.herokuapp.com/getMethodParameters", {config: configArray, greenidePackage: greenidePackage, oldConfig: defaultConfigArray}, {}).then(res => {
 		let definedFunctions: any = res.data.methods;
-		let hotspotRuntime: any = res.data.hotspotRuntime;
-		let hotspotEnergy: any = res.data.hotspotEnergy;
-		let greenspotRuntime: any = [].concat(hotspotRuntime).reverse();//Achtung die ersten Elemente werden immer -1 als runtime- und energyHotspot haben
-		let greenspotEnergy: any = [].concat(hotspotEnergy).reverse();  //same thing
+		currentHotspotRuntime = res.data.hotspotRuntime;
+		currentHotspotEnergy = res.data.hotspotEnergy;
+		currentGreenspotRuntime = [].concat(currentHotspotRuntime).reverse();//Achtung die ersten Elemente werden immer -1 als runtime- und energyHotspot haben
+		currentGreenspotEnergy = [].concat(currentHotspotEnergy).reverse();  //same thing
 
-		//greenspotarray analog 
+		//Update HotspotWindow wenn offen
+		currentHotspotWebviewPanel && currentHotspotWebviewPanel.webview && currentHotspotWebviewPanel.webview.postMessage({ 
+			command: 'sendHotspots',
+			hotspotCount: currentHotspotCount,
+			hotspotType: currentHotspotType,
+			hotspotRuntime: currentHotspotRuntime,
+			hotspotEnergy: currentHotspotEnergy,
+			greenspotRuntime: currentGreenspotRuntime,
+			greenspotEnergy: currentGreenspotEnergy,
+		});
 
 		//Entferne vorherige HoverProvider
 		if(currentHoverProvider){
 			currentHoverProvider.dispose();
 		}
 
-		highlightHotAndGreenspots(hotspotRuntime, hotspotEnergy, greenspotRuntime, greenspotEnergy, 10, "energy");//'energy' oder 'runtime' als vergleichsparameter festlegbar
+		highlightHotAndGreenspots();
 
 		vscode.window.onDidChangeVisibleTextEditors(event => {
-			highlightHotAndGreenspots(hotspotRuntime, hotspotEnergy, greenspotRuntime, greenspotEnergy, 10, "energy");
+			highlightHotAndGreenspots();
 		}, null, context.subscriptions);
 
 		let disposable = vscode.languages.registerHoverProvider({language: 'java', scheme: 'file'},{
@@ -282,11 +432,12 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 
 				const wordRange = document.getWordRangeAtPosition(position, /\w[\w]*/g);
 
+
 				queryFunctionNames(document, definedFunctions, wordRange, (definedFunction: any) => {
 					hoverTriggered = true;
 					hoverText = "Function: " + definedFunction.name + "\nRuntime: " + definedFunction.runtime.toFixed(2) + " ms\nEnergy: " + definedFunction.energy.toFixed(2) + " mWs";
 					let isInArray = false;
-					for(const hotspot of hotspotRuntime){
+					for(const hotspot of currentHotspotRuntime){
 						if(hotspot.name === definedFunction.name){
 							const runtimeChange = (definedFunction.runtime - hotspot.oldRuntime);
 							const energyChange = (definedFunction.energy - hotspot.oldEnergy);
@@ -320,27 +471,28 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 }
 
 
-function highlightHotAndGreenspots(hotspotRuntime: any, hotspotEnergy: any, greenspotRuntime: any, greenspotEnergy: any, count: number, type: String = "runtime"){
+function highlightHotAndGreenspots(){
+
 	const activeEditor = vscode.window.activeTextEditor;
 	if(!activeEditor)
 		{return;}
 	
 
-	if(type === "runtime"){
-		const hotspots: vscode.DecorationOptions[] | undefined = highlightSpots(hotspotRuntime, count);
+	if(currentHotspotType === "runtime"){
+		const hotspots: vscode.DecorationOptions[] | undefined = highlightSpots(currentHotspotRuntime, currentHotspotCount);
 		if(hotspots !== undefined){
 			activeEditor.setDecorations(hotspotsDecoration, hotspots);
 		}
-		const greenspots: vscode.DecorationOptions[] | undefined = highlightSpots(greenspotRuntime, count);
+		const greenspots: vscode.DecorationOptions[] | undefined = highlightSpots(currentGreenspotRuntime, currentHotspotCount);
 		if(greenspots !== undefined){
 			activeEditor.setDecorations(greenspotDecoration, greenspots);
 		}
-	}else if(type === "energy"){
-		const hotspots: vscode.DecorationOptions[] | undefined = highlightSpots(hotspotEnergy, count);
+	}else if(currentHotspotType === "energy"){
+		const hotspots: vscode.DecorationOptions[] | undefined = highlightSpots(currentHotspotEnergy, currentHotspotCount);
 		if(hotspots !== undefined){
 			activeEditor.setDecorations(hotspotsDecoration, hotspots);
 		}
-		const greenspots: vscode.DecorationOptions[] | undefined = highlightSpots(greenspotEnergy, count);
+		const greenspots: vscode.DecorationOptions[] | undefined = highlightSpots(currentGreenspotEnergy, currentHotspotCount);
 		if(greenspots !== undefined){
 			activeEditor.setDecorations(greenspotDecoration, greenspots);
 		}
@@ -394,6 +546,7 @@ function queryFunctionNames(document: vscode.TextDocument, definedFunctions: any
 
 	//Gehe durch alle Methodennamen
 	definedFunctions.forEach((definedFunction: any) => {
+
 			let functionDef = definedFunction.name;
 			let isFunctionParameterCountSet = false;
 			let functionParameterCount = 0;
@@ -449,10 +602,8 @@ function queryFunctionNames(document: vscode.TextDocument, definedFunctions: any
 				}
 			}
 
-
-
 			//Checke ob mit Leerzeichen beginnt und Klammern folgen
-			if(suffixText.match(/^\(.*\)\s*{/) && prefixText.match(/\s$/)){
+			if((suffixText.match(/^\(.*\)[\S,\s]*{/) !== null) && (prefixText.match(/\s$/) !== null)){
 
 				//Teste ob entgültiger Funktionsname mit Wort übereinstimmt
 				if (functionName === word) {

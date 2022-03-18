@@ -26,6 +26,10 @@
 			{
 				"command": "greenide.config",
 				"title": "Einstellung"
+			},
+			{
+				"command": "greenide.hotspots",
+				"title": "Hotspots"
 			}
 		]
 	},
