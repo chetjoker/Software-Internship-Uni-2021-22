@@ -57,7 +57,7 @@ app.post('/getParameters', async (req, res) => {
   if(req.body && req.body.greenidePackage){
     try{
       //Read config parameters from greenidePackage.csv
-      let parameters = await import_csv_reader.readConfigParameters("./" + req.body.greenidePackage + ".csv");
+      let parameters = await import_csv_reader.readConfigParameters("./models/" + req.body.greenidePackage + ".csv");
       res.status(200).send(parameters)
     }catch(e){
       res.status(500).send(e)
