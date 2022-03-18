@@ -457,7 +457,7 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 				queryFunctionNames(document, definedFunctions, wordRange, (definedFunction: any) => {
 					hoverTriggered = true;
 					hoverText = "Function: " + definedFunction.name + 
-								"\nCustom-Config:" +
+								"\nCustomConfig" +
 								"\nRuntime: " + definedFunction.runtime.toFixed(2) + " ms" +
 								"\nEnergy: " + definedFunction.energy.toFixed(2) + " mWs";
 
@@ -468,24 +468,18 @@ function registerNewMethodHover(context: vscode.ExtensionContext, configArray: a
 							const energyChange = (definedFunction.energy - hotspot.oldEnergy);
 							
 							hoverText = "Function: " + definedFunction.name + 
-										"\nDefault-Config:" +
-										"\nRuntime: " + (definedFunction.runtime + runtimeChange).toFixed(2) + " ms" +
-										"\nEnergy: " + (definedFunction.energy + energyChange).toFixed(2) + " mWs" + 
-										"\nCustom-Config:" +
+										"\nDefaultConfig" +
+										"\nRuntime: " + (definedFunction.runtime - runtimeChange).toFixed(2) + " ms" +
+										"\nEnergy: " + (definedFunction.energy - energyChange).toFixed(2) + " mWs" + 
+										"\nCustomConfig" +
 										"\nRuntime: " + definedFunction.runtime.toFixed(2) + " ms" +
 										"\nEnergy: " + definedFunction.energy.toFixed(2) + " mWs" + 
-										"\nChange:" +
+										"\nValueChange" +
 										"\nRuntimeChange: " + (runtimeChange > 0 ? '+' : '') + runtimeChange.toFixed(2) + " ms" +
 										"\nEnergyChange: " + (energyChange > 0 ? '+' : '') + energyChange.toFixed(2) + " mWs";
 
 							isInArray = true;
 						}
-					}
-
-					if(!isInArray){
-						//Negativer Hotspot
-						hoverText += "\nRuntimeChange: NaN";
-						hoverText += "\nEnergyChange: NaN";
 					}
 				});
 
@@ -637,7 +631,7 @@ function queryFunctionNames(document: vscode.TextDocument, definedFunctions: any
 			}
 
 			//Checke ob mit Leerzeichen beginnt und Klammern folgen
-			if((suffixText.match(/^\(.*\)[\S,\s]*{/) !== null) && (prefixText.match(/\s$/) !== null)){
+			if((suffixText.match(/^\(.*\)[^\;^\}^\(]*{/) !== null) && (prefixText.match(/\s$/) !== null)){
 
 				//Teste ob entgültiger Funktionsname mit Wort übereinstimmt
 				if (functionName === word) {
