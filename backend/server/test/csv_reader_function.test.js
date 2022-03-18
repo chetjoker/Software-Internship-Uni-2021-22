@@ -6,7 +6,7 @@ test("readConfigParameters rejects with wrong file name", () => {
     expect(import_csv_reader.readConfigParameters("./someinvalidfilepath.csv")).rejects.toMatch('Something went wrong with reading the csv');
 });
 test('valid filename returns correct parameter length', async () => {
-    let data = await import_csv_reader.readConfigParameters("./kanzi.csv");
+    let data = await import_csv_reader.readConfigParameters("./models/kanzi.csv");
     expect(data.length).toBe(23);
 });
 
@@ -16,7 +16,7 @@ test('readCSV rejects with wrong file name', () => {
     return expect(import_csv_reader.readCSV("./someinvalidfilepath.csv")).rejects.toMatch('Something went wrong with reading the csv');
 });
 test('valid filename returns correct line length', async () => {
-    let data = await import_csv_reader.readCSV("./kanzi.csv");
+    let data = await import_csv_reader.readCSV("./models/kanzi.csv");
     expect(data.split("\n").length).toBe(12344);
 });
 
