@@ -618,6 +618,13 @@ function queryFunctionNames(document: vscode.TextDocument, definedFunctions: any
 				}
 			}
 
+			let suffixRegex : RegExp = /^\(.*\)[^\;\}\(]*{/;
+			let prefixRegex : RegExp = /\s$/;
+
+			if(functionName === "<clinit>"){
+				prefixRegex = /class[^\;\}\(\{\)]*$/;
+				suffixRegex = /^[\s]*{/;
+			}
 
 			//Sonderfall Konstruktor
 			if(functionName === "<init>" || functionName === "<clinit>"){
@@ -631,7 +638,7 @@ function queryFunctionNames(document: vscode.TextDocument, definedFunctions: any
 			}
 
 			//Checke ob mit Leerzeichen beginnt und Klammern folgen
-			if((suffixText.match(/^\(.*\)[^\;^\}^\(]*{/) !== null) && (prefixText.match(/\s$/) !== null)){
+			if((suffixText.match(suffixRegex) !== null) && (prefixText.match(prefixRegex) !== null)){
 
 				//Teste ob entgültiger Funktionsname mit Wort übereinstimmt
 				if (functionName === word) {
@@ -655,7 +662,9 @@ function queryFunctionNames(document: vscode.TextDocument, definedFunctions: any
 							//Sonderbehandlung für Subclasses
 							if((!isSubClass || isInSubclass) && subClassIndex >= highestSubClassIndex){
 								highestSubClassIndex = subClassIndex;
+								console.log(suffixRegex, prefixRegex);
 								callback(definedFunction);
+								return;
 							}
 						}
 					}
