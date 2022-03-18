@@ -14,15 +14,11 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:greenide.init"    
+		"*"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
 		"commands": [
-			{
-				"command": "greenide.init",
-				"title": "Initialize Greenide"
-			},
 			{
 				"command": "greenide.config",
 				"title": "Einstellung"

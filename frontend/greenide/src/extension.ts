@@ -39,6 +39,7 @@ const greenspotDecoration = vscode.window.createTextEditorDecorationType({
 	}
 });
 
+//Zwischenspeicherung der Config Arrays
 let configArrayCache : any[] = [];
 let defaultConfigArrayCache : any[] = [];
 
@@ -64,10 +65,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	console.log('Congratulations, your extension "greenide" is now active!!');
 
-	let initDisposable = vscode.commands.registerCommand('greenide.init', () => {
-		initializeGreenide(context);
-	});
-	context.subscriptions.push(initDisposable);
+	initializeGreenide(context);
 
 	let settingsDisposable = vscode.commands.registerCommand('greenide.config', () => {
 		const panel = vscode.window.createWebviewPanel(
@@ -265,6 +263,7 @@ function getHotspotPageContent(cssSRC: string, jsSRC: string){
 			<option value="10">10</option>
 			<option value="20">20</option>
 			<option value="50">50</option>
+			<option value="100">100</option>
 		</select>
 	</div>
 
