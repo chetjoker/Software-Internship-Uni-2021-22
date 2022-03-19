@@ -60,7 +60,7 @@ let currentHotspotCount = 5;
 let currentHotspotWebviewPanel : vscode.WebviewPanel;
 
 // this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
+// your extension is activated the when you open your project folder
 export function activate(context: vscode.ExtensionContext) {
 
 	console.log('Congratulations, your extension "greenide" is now active!!');
@@ -240,7 +240,7 @@ function getSettingsPageContent(cssSRC: string, jsSRC: string){
 	<h1 style="color:#2ecc71";>GREENIDE SETTINGS</h1>
 	
 
-	<fieldset id="parameters">
+	<fieldset id="parameters">Greenide-Extension wurde nicht gestartet. Bitte richtigen Ordner wählen.
 	</fieldset>
 	
 	<button id="defaultSettings">Set default.config</button>
@@ -304,7 +304,7 @@ function getHotspotPageContent(cssSRC: string, jsSRC: string){
 // this method is called when your extension is deactivated
 export function deactivate() {}
 
-function updateConfig(configFile: string, configData: any){
+function updateConfig(configFile: string, configData: any){ 		//writes in configfile
 	if(folderPath){
 		fs.writeFileSync(path.join(folderPath[0], configFile), configData.toString());
 	}
@@ -355,7 +355,7 @@ function initializeGreenide(context: vscode.ExtensionContext){
 						console.error(err);
 					}
 
-					let configArray = readConfig(configName);
+					let configArray        = readConfig(configName);
 					let defaultConfigArray = readConfig(defaultConfigName);
 
 					configArrayCache = configArray;
@@ -404,55 +404,50 @@ function configsUpdated(configType: string, context: vscode.ExtensionContext){
 }
 
 
-function readConfig(configName: string){ 
+function readConfig(configType: string){ 
 	let configArray: number[] = [];
 
 	if(folderPath){
-		let fileContent = fs.readFileSync(path.join(folderPath[0], configName));
+		let fileContent = fs.readFileSync(path.join(folderPath[0], configType));
+		let wrongConfig: boolean = false; 
+		let testArray = fileContent.toString().split(",").map(function(item) {
+			return parseInt(item);
+		});;
 		
-		let wrongLetter: boolean = false; 
-		
-		try{
-			if(fileContent.length !== (currentParameterKeys.length *2)-1)
-			{	
-				for(var i = 0; i < fileContent.length; i++)
-				{
-					if(i % 2 === 0)
-					{
-						if(fileContent[i] !== 0 && fileContent[i] !== 1)
-						{
-							wrongLetter = true;
-						}
-					}
-					else 
-					{
-					//	if(fileContent[i] !== ",")
-						//	wrongLetter = true;
-					}
+//wenn das configFile beim Start falsch ist wird es auch ist wrongConfig auch false-> Datei geleert / noch beheben!
 
+		
+
+		try{
+			if(fileContent.length !== (currentParameterKeys.length*2)-1){ //testArray.length geht nicht durch 0001 als Eingabe
+			wrongConfig=true;}
+
+			for(var i = 0; i < testArray.length; i++){
+				if(testArray[i] !== 0 && testArray[i] !== 1){
+							wrongConfig = true;}
 				}	
-				if(configName === defaultConfigName)
+
+			if(wrongConfig){
+				if(configType === defaultConfigName)
 				{
 					configArray = defaultConfigArrayCache;
 					updateConfig(defaultConfigName,configArray);
-					vscode.window.showErrorMessage('Invalid input in ' + configName);
+					vscode.window.showErrorMessage('Invalid input in ' + configType);
 				}
-				else if(configName === configName)
+				else if(configType === configName)
 				{
 					configArray = configArrayCache;
 					updateConfig(configName,configArray);
-					vscode.window.showErrorMessage('Invalid input in ' + configName);
+					vscode.window.showErrorMessage('Invalid input in ' + configType);
 				}
 				else
 				{
-					vscode.window.showErrorMessage(configName + ' not found');
+					vscode.window.showErrorMessage(configType + ' not found');
 				}
 			}
 			else
 			{
-				configArray = fileContent.toString().split(",").map(function(item) {
-					return parseInt(item);
-				});;
+				configArray = testArray;
 			}
 
 		}catch{
