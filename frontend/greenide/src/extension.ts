@@ -389,9 +389,11 @@ function configsUpdated(configType: string, context: vscode.ExtensionContext){
 	switch(configType){
 		case configName:
 			configArray = readConfig(configType);
+			configArrayCache = configArray;
 			break;
 		case defaultConfigName:
 			defaultConfigArray = readConfig(configType);
+			defaultConfigArrayCache = defaultConfigArray;
 			break;	
 		default:
 			console.log("ERROR: Invalid Config Name (configsUpdated)");
@@ -407,11 +409,52 @@ function readConfig(configName: string){
 
 	if(folderPath){
 		let fileContent = fs.readFileSync(path.join(folderPath[0], configName));
-
+		
+		let wrongLetter: boolean = false; 
+		
 		try{
-			configArray = fileContent.toString().split(",").map(function(item) {
-				return parseInt(item);
-			});;
+			if(fileContent.length !== (currentParameterKeys.length *2)-1)
+			{	
+				for(var i = 0; i < fileContent.length; i++)
+				{
+					if(i % 2 === 0)
+					{
+						if(fileContent[i] !== 0 && fileContent[i] !== 1)
+						{
+							wrongLetter = true;
+						}
+					}
+					else 
+					{
+					//	if(fileContent[i] !== ",")
+						//	wrongLetter = true;
+					}
+
+				}	
+				if(configName === defaultConfigName)
+				{
+					configArray = defaultConfigArrayCache;
+					updateConfig(defaultConfigName,configArray);
+					vscode.window.showErrorMessage('Invalid input in ' + configName);
+				}
+				else if(configName === configName)
+				{
+					configArray = configArrayCache;
+					updateConfig(configName,configArray);
+					vscode.window.showErrorMessage('Invalid input in ' + configName);
+				}
+				else
+				{
+					vscode.window.showErrorMessage(configName + ' not found');
+				}
+			}
+			else
+			{
+				configArray = fileContent.toString().split(",").map(function(item) {
+					return parseInt(item);
+				});;
+			}
+
 		}catch{
 			console.log("FEHLER in der greenide.config");
 		}
