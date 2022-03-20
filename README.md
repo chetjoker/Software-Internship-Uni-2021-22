@@ -7,9 +7,10 @@
 GreenIDE is extension developed to work with Visual Studio Code, in effort to help software developers understand and reduce power consumption of every code line. This extension will take configurations of a software into consideration to put out direct feedback on how much time would one specific function to execute, as well of how power consuming the function is, therefore developers can make necessary changes to reduce how much energy a program would cost.
   
 ## Functions
-- GreenIDE can identify hotspot code, where a function with a specific configuration would require much more energy than average.
+- GreenIDE can identify hotspot code, where a function with a specific configuration would require much more energy and runtime than average.
 - By hovering your click point on a function of your choice, you would know how much energy is needed for the execution and how long would it take.
 - You can change a program's configuration by editing the configuration file.
+- You can display a number of hotspots and greenspots and lead them to the respective Java class 
 - The colors of the messages you receive are adapted to your theme, whereas it is dark mode or normal mode.
 
 ## Setting up and how to use
@@ -20,15 +21,22 @@ GreenIDE is extension developed to work with Visual Studio Code, in effort to he
 - Then you can click on "Install from VSIX" and select the downloaded .vsix file
 - Now the extension is installed and you can run your command from the command palette by pressing (`Ctrl+Shift+P` or `Cmd+Shift+P` on Mac) and typing `greenide.init`.
 - It's all set and done! You are good to go. Now just hover on a function of your choice to see the energy consumption level, execution time and if it is a hotspot code or not
-  
-## How to debug the extension
-- First, you would need to open up the folder `frontend/greenide` directly in Visual Studio Code (File -> Open Folder)
-- Then open the file `extension.ts` 
-- Press `F5` to open a new window with your extension loaded
-- Open your codes on this new window
--  Run your command from the command palette by pressing (`Ctrl+Shift+P` or `Cmd+Shift+P` on Mac) and typing `greenide.init`.
-- It's all set and done! You are good to go. Now just hover on a function of your choice to see the energy consumption level, execution time and if it is a hotspot code or not
 
+## How to use the extension
+1. Open your project folder (kanzi, density).
+2. GreenIDE is started by itself as soon as the correct projektornder is opened.
+- To detect if GreenIDE is started, a message will appear in the lower right corner and two configuration files will be created in the projector. ![alt ](image src="readme_screenshots/start_marked.png")
+3. Now open the settings window by pressing <kdb>Ctrl<\kdb>+<kdb>Shift<\kdb>+<kdb>P<\kdb> and writing `greenide.config` now a new window will open
+- ![alt](image src="readme_screenshots/settings_window.png")
+- In this window all settings can be selected as desired and must be confirmed with the lower buttons
+4. After the settings have been made, you can open the hotspots window by pressing <kdb>Ctrl<\kdb>+<kdb>Shift<\kdb>+<kdb>P<\kdb> and writing `greenide.hotspots`. 
+- ![alt](image src="readme_screenshots/hotspots_window.png")
+- In this window you can choose between runtime and energy and set the number of hotspots/greenspots to be displayed.
+- Now you get a list of the biggest hotspots and greenspots. With a click on the names you can go directly to the Java class.
+5. If you now open a Java class or have been guided into one by step 4, you will see the hotspots(red) and greenspots(green) marked in color in the text and in the scrollbar.
+- ![alt](image src="readme_screenshots/code_sample.png")
+6. Now you can hover over the marked and of course also over unmarked functions and display the runtime and energy usage.
+- ![alt](image src="hover_sample.png")
 
 ## Release notes
 ### 1.0.0
