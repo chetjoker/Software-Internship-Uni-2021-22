@@ -398,7 +398,7 @@ function configsUpdated(configType: string, context: vscode.ExtensionContext){
 			defaultConfigArrayCache = defaultConfigArray;
 			break;	
 		default:
-			console.log("ERROR: Invalid Config Name (configsUpdated)");
+			vscode.window.showErrorMessage('Invalid Config Name !');
 			break;
 	}
 	
