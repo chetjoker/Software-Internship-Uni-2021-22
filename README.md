@@ -25,18 +25,18 @@ GreenIDE is extension developed to work with Visual Studio Code, in effort to he
 ## How to use the extension
 1. Open your project folder (kanzi, density).
 2. GreenIDE is started by itself as soon as the correct projektornder is opened.
-- To detect if GreenIDE is started, a message will appear in the lower right corner and two configuration files will be created in the projector. ![alt Start](image src="/readme_screenshots/start_marked.png")
-3. Now open the settings window by pressing <kbd>CTRL</kbd>+<kbd>SHIFT</kbd> +<kbd>P</kbd> <and writing `greenide.config` now a new window will open
-- ![alt Settings Window](image src="/readme_screenshots/settings_window.png")
+- To detect if GreenIDE is started, a message will appear in the lower right corner and two configuration files will be created in the projector. <img src="readme_screenshots/start_marked.png" width=250>
+3. Now open the settings window by pressing <kbd>CTRL</kbd>+<kbd>SHIFT</kbd> +<kbd>P</kbd> and writing `greenide.config` now a new window will open
+- <img src="readme_screenshots/settings_window.png" width=250>
 - In this window all settings can be selected as desired and must be confirmed with the lower buttons
-4. After the settings have been made, you can open the hotspots window by pressing <kbd>CTRL</kbd>+<kbd>SHIFT</kbd> +<kbd>P</kbd> and writing `greenide.hotspots`. 
-- ![alt Hotspot Window](image src="/readme_screenshots/hotspots_window.png")
+4. After the settings have been made, you can open the hotspots window by pressing <kbd>CTRL</kbd>+<kbd>SHIFT</kbd> +<kbd>P</kbd> and writing `greenide.hotspots`
+- <img src="readme_screenshots/hotspots_window.png" width=250>
 - In this window you can choose between runtime and energy and set the number of hotspots/greenspots to be displayed.
 - Now you get a list of the biggest hotspots and greenspots. With a click on the names you can go directly to the Java class.
-5. If you now open a Java class or have been guided into one by step 4, you will see the hotspots(red) and greenspots(green) marked in color in the text and in the scrollbar.
-- ![alt Code Sample](image src="/readme_screenshots/code_sample.png")
+5. If you now open a Java class or have been guided into one by step 4, you will see the hotspots (red) and greenspots (green) marked in color in the text and in the scrollbar.
+- <img src="readme_screenshots/code_sample.png" width=250>
 6. Now you can hover over the marked and of course also over unmarked functions and display the runtime and energy usage.
-- ![alt Hover Sample](image src="/readme_screenshots/hover_sample.png")
+- <img src="readme_screenshots/hover_sample.png" width=250>
 
 ## Release notes
 ### 1.0.0
