@@ -13,14 +13,12 @@ GreenIDE is extension developed to work with Visual Studio Code, in effort to he
 - You can display a number of hotspots and greenspots and lead them to the respective Java class 
 - The colors of the messages you receive are adapted to your theme, whereas it is dark mode or normal mode.
 
-## Setting up and how to use
-- To download the current extension, go to the pipelines and open up the package_extension job
+## Setting up
+- To download the current extension, go to the pipelines and open up the package_extension job or <a href="https://git.informatik.uni-leipzig.de/swtp-21-22/swt-p-ws-2020-2021/swtp-2021-13/-/jobs/artifacts/main/download?job=package_extension">click here</a>.
 - Then click on download to download the job artifact
 - The downloaded ZIP-Folder contains the .vsix extension file
 - In Visual Studio  go to the "extension" window (menu on the left) and click on the three dots in the top right corner
 - Then you can click on "Install from VSIX" and select the downloaded .vsix file
-- Now the extension is installed and you can run your command from the command palette by pressing (`Ctrl+Shift+P` or `Cmd+Shift+P` on Mac) and typing `greenide.init`.
-- It's all set and done! You are good to go. Now just hover on a function of your choice to see the energy consumption level, execution time and if it is a hotspot code or not
 
 ## How to use the extension
 1. Open your project folder (kanzi, density).
