@@ -64,7 +64,7 @@ let currentHotspotWebviewPanel : vscode.WebviewPanel;
 // your extension is activated the when you open your project folder
 export function activate(context: vscode.ExtensionContext) {
 
-	console.log('Congratulations, your extension "greenide" is now active!!');
+	vscode.window.showInformationMessage('GreenIDE is now active!');
 
 	initializeGreenide(context);
 
@@ -376,7 +376,10 @@ function initializeGreenide(context: vscode.ExtensionContext){
 
 			});
 		}
-
+		else 
+		{
+			vscode.window.showErrorMessage('No model for this project!');
+		}
 	});
 }
 
@@ -449,7 +452,6 @@ function readConfig(configType: string){
 			{
 				configArray = testArray;
 			}
-
 		}catch{
 			vscode.window.showErrorMessage(configType + ' not found or has an invalid input');
 		}
