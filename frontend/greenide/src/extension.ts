@@ -42,6 +42,7 @@ const greenspotDecoration = vscode.window.createTextEditorDecorationType({
 //Zwischenspeicherung der Config Arrays
 let configArrayCache : any[] = [];
 let defaultConfigArrayCache : any[] = [];
+let standardConfigArray : number[] = [];
 
 let currentModel : any = {};
 
@@ -60,7 +61,7 @@ let currentHotspotCount = 5;
 let currentHotspotWebviewPanel : vscode.WebviewPanel;
 
 // this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
+// your extension is activated the when you open your project folder
 export function activate(context: vscode.ExtensionContext) {
 
 	console.log('Congratulations, your extension "greenide" is now active!!');
@@ -240,7 +241,7 @@ function getSettingsPageContent(cssSRC: string, jsSRC: string){
 	<h1 style="color:#2ecc71";>GREENIDE SETTINGS</h1>
 	
 
-	<fieldset id="parameters">
+	<fieldset id="parameters">Greenide-Extension wurde nicht gestartet. Bitte richtigen Ordner wählen.
 	</fieldset>
 	
 	<button id="defaultSettings">Set default.config</button>
@@ -304,7 +305,7 @@ function getHotspotPageContent(cssSRC: string, jsSRC: string){
 // this method is called when your extension is deactivated
 export function deactivate() {}
 
-function updateConfig(configFile: string, configData: any){
+function updateConfig(configFile: string, configData: any){ 		//writes in configfile
 	if(folderPath){
 		fs.writeFileSync(path.join(folderPath[0], configFile), configData.toString());
 	}
@@ -334,8 +335,6 @@ function initializeGreenide(context: vscode.ExtensionContext){
 
 					currentParameterKeys = res.data;
 
-					let standardConfigArray : number[] = [];
-
 					for (let i = 0; i < standardConfigKeys.length; i ++){
 						if(i === 0){
 							standardConfigArray[i] = 1;
@@ -355,7 +354,7 @@ function initializeGreenide(context: vscode.ExtensionContext){
 						console.error(err);
 					}
 
-					let configArray = readConfig(configName);
+					let configArray        = readConfig(configName);
 					let defaultConfigArray = readConfig(defaultConfigName);
 
 					configArrayCache = configArray;
@@ -389,9 +388,11 @@ function configsUpdated(configType: string, context: vscode.ExtensionContext){
 	switch(configType){
 		case configName:
 			configArray = readConfig(configType);
+			configArrayCache = configArray;
 			break;
 		case defaultConfigName:
 			defaultConfigArray = readConfig(configType);
+			defaultConfigArrayCache = defaultConfigArray;
 			break;	
 		default:
 			console.log("ERROR: Invalid Config Name (configsUpdated)");
@@ -402,18 +403,55 @@ function configsUpdated(configType: string, context: vscode.ExtensionContext){
 }
 
 
-function readConfig(configName: string){ 
+function readConfig(configType: string){ 
 	let configArray: number[] = [];
 
 	if(folderPath){
-		let fileContent = fs.readFileSync(path.join(folderPath[0], configName));
-
+		let fileContent = fs.readFileSync(path.join(folderPath[0], configType));
+		let wrongConfig: boolean = false; 
+		let testArray = fileContent.toString().split(",").map(function(item) {
+			return parseInt(item);
+		});;
+		
 		try{
-			configArray = fileContent.toString().split(",").map(function(item) {
-				return parseInt(item);
-			});;
+			if(fileContent.length !== (currentParameterKeys.length * 2 )-1)
+				wrongConfig=true;				
+			
+			for(let i = 0; i < testArray.length; i++)
+				if(testArray[i] !== 0 && testArray[i] !== 1)
+					wrongConfig = true;
+
+			if(wrongConfig){
+				if(defaultConfigArrayCache.length === 0)
+					defaultConfigArrayCache = standardConfigArray;
+				
+				if(configArrayCache.length === 0)
+					configArrayCache = standardConfigArray;
+
+				switch(configType)
+				{
+					case defaultConfigName:
+						configArray = defaultConfigArrayCache;
+						updateConfig(defaultConfigName,configArray);
+						vscode.window.showErrorMessage('Invalid input in ' + configType + '!  The previous setting is loaded');
+						break;
+					case configName:
+						configArray = configArrayCache;
+						updateConfig(configName,configArray);
+						vscode.window.showErrorMessage('Invalid input in ' + configType + '!  The previous setting is loaded');
+						break;
+					default:
+						vscode.window.showErrorMessage(configType + ' not found');
+						break;
+				}
+			}
+			else
+			{
+				configArray = testArray;
+			}
+
 		}catch{
-			console.log("FEHLER in der greenide.config");
+			vscode.window.showErrorMessage(configType + ' not found or has an invalid input');
 		}
 	}
 	return configArray;
