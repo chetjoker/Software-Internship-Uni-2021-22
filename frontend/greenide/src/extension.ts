@@ -414,7 +414,7 @@ function readConfig(configType: string){
 		});;
 		
 		try{
-			if(testArray.length !== currentParameterKeys.length)
+			if(fileContent.length !== (currentParameterKeys.length * 2 )-1)
 				wrongConfig=true;				
 			
 			for(let i = 0; i < testArray.length; i++)
