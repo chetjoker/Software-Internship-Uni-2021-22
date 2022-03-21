@@ -79,15 +79,17 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 		);
 		const cssPath = vscode.Uri.file(
-			path.join(context.extensionPath, 'src', "settingsPage", 'style.css')
+			path.join(context.extensionPath, 'assets', "settingsPage", 'style.css')
 		);
 		const cssSRC = panel.webview.asWebviewUri(cssPath);
 
 		const jsPath = vscode.Uri.file(
-			path.join(context.extensionPath, 'src', "settingsPage", 'script.js')
+			path.join(context.extensionPath, 'assets', "settingsPage", 'script.js')
 		);
 
 		const jsSRC = panel.webview.asWebviewUri(jsPath);
+
+		console.log(cssSRC, jsSRC);
 		
 		panel.webview.html = getSettingsPageContent(cssSRC.toString(), jsSRC.toString());
 
@@ -151,15 +153,17 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 		);
 		const cssPath = vscode.Uri.file(
-			path.join(context.extensionPath, 'src', "hotspotPage", 'style.css')
+			path.join(context.extensionPath, 'assets', "hotspotPage", 'style.css')
 		);
 		const cssSRC = currentHotspotWebviewPanel.webview.asWebviewUri(cssPath);
 
 		const jsPath = vscode.Uri.file(
-			path.join(context.extensionPath, 'src', "hotspotPage", 'script.js')
+			path.join(context.extensionPath, 'assets', "hotspotPage", 'script.js')
 		);
 
 		const jsSRC = currentHotspotWebviewPanel.webview.asWebviewUri(jsPath);
+		
+		console.log(cssSRC, jsSRC);
 		
 		currentHotspotWebviewPanel.webview.html = getHotspotPageContent(cssSRC.toString(), jsSRC.toString());
 
