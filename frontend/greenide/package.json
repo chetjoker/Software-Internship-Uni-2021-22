@@ -2,6 +2,8 @@
 	"name": "greenide",
 	"displayName": "GreenIDE",
 	"description": "",
+	"icon": "images/icon.png",
+	"publisher": "group 13",
 	"version": "0.0.1",
 	"repository": {
 		"url": "https://git.informatik.uni-leipzig.de/swtp-21-22/swt-p-ws-2020-2021/swtp-2021-13",
