@@ -1,35 +1,13 @@
-image: maven:latest
-
 stages:
   - build 
   - test
   - deploy
-
-variables:
-  MAVEN_CLI_OPTS: "-s .m2/settings.xml --batch-mode"
-  MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
 
 cache:
   paths:
     - .m2/repository/
     - target/
     - frontend/greenide/node_modules/
-
-build:
-  tags:
-    - SWTP
-  stage: build
-  script:
-    - echo "building"
-    - "mvn install"
-    - cd src/main/java
-    - javac hello/*.java
-    - java hello.HelloWorld
-
-test:
-  stage: test
-  script:
-    - mvn clean test -Dtest=hello.GreeterTest
 
 test_frontend:
   stage: test
@@ -44,8 +22,17 @@ test_frontend:
     - /usr/bin/Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
     - npm run test
 
+test_backend:
+  stage: test
+  image: node:12-slim
+  script:
+    - cd backend/server
+    - apt-get update
+    - npm i
+    - npm run test
+
 package_extension:
-  stage: deploy
+  stage: build
   image: node:latest
   script:
     - cd frontend/greenide
@@ -62,3 +49,4 @@ deploy:
     - gem install dpl 
     - cd backend/server
   script: dpl --provider=heroku --app=server-backend-swtp-13 --api-key=$HEROKU_API_TOKEN --skip_cleanup
+  
