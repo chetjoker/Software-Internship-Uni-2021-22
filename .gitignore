@@ -7,3 +7,4 @@ frontend/greenide/greenide.config
 backend/node-test/node-node_modules
 backend/server/node_modules
 backend/server/coverage
+.DS_Store
