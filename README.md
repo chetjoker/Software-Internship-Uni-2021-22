@@ -1,7 +1,11 @@
 
 # Welcome to GreenIDE
 
-  
+[!NOTE]  
+This was my first 'bigger' uni-project with 5 other people. This was part of a university course named 'Softwaretechnik-Praktikum'. Our task is explained in the paragraph 'What is GreenIDE?'. 
+
+[!WARNING]
+The in-code documentation is in english but sometimes also in german. So it would be in your interest to understand german if you want to dive deep into the code.
 
 ## What is GreenIDE?
 GreenIDE is extension developed to work with Visual Studio Code, in effort to help software developers understand and reduce power consumption of every code line. This extension will take configurations of a software into consideration to put out direct feedback on how much time would one specific function to execute, as well of how power consuming the function is, therefore developers can make necessary changes to reduce how much energy a program would cost.
